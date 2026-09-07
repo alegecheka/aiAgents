@@ -66,3 +66,11 @@ You can compile and run this example directly using the `basic_usage` target:
 make basic_usage
 ./basic_usage
 ```
+
+### Stdin Example
+We also provide `stdin_reader`, which demonstrates how to accept HOON input through a unix pipe (`stdin`), parse it into an AST, and pretty-print it recursively:
+
+```bash
+make stdin_reader
+echo '{{{ name: "AI Agent"; values: [1, 2.5, false] }}}' | ./stdin_reader
+```

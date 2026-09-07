@@ -24,6 +24,9 @@ target_link_libraries(hoon2json hoon_cpp)
 add_executable(basic_usage examples/basic_usage.cpp)
 target_link_libraries(basic_usage hoon_cpp)
 
+add_executable(stdin_reader examples/stdin_reader.cpp)
+target_link_libraries(stdin_reader hoon_cpp)
+
 # Testing
 enable_testing()
 add_test(
