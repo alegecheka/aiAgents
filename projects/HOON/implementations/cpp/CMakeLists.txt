@@ -20,6 +20,10 @@ target_link_libraries(hoon-fmt hoon_cpp)
 add_executable(hoon2json tools/hoon2json.cpp)
 target_link_libraries(hoon2json hoon_cpp)
 
+# Example Usage
+add_executable(basic_usage examples/basic_usage.cpp)
+target_link_libraries(basic_usage hoon_cpp)
+
 # Testing
 enable_testing()
 add_test(
