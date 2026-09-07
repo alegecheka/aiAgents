@@ -1,8 +1,8 @@
-# HOSN — Human Oriented Subject Notation
+# HOON — human oriented object notation
 
 A human-readable data notation for documents, subjects and files.
 Like JSON, but written for people first and parsers second.
-Short name: **HOSN**. Extension: `.hosn`. Each `{{{ ... }}}` document is a **subject**.
+Short name: **HOON**. Extension: `.hoon`. Each `{{{ ... }}}` document is a **subject**.
 (Previously drafted as "SubjectNotation" with `.subject` files.)
 
 Status: **draft for discussion**. Nothing here is final until we say it is.
@@ -36,7 +36,7 @@ Status: **draft for discussion**. Nothing here is final until we say it is.
 - The triple-brace form is used **only** for the document root.
   Everything nested inside is a plain object in **single braces** `{ ... }`.
 - Double braces `{{ ... }}` are **reserved** and are an error in v0.1.
-- Recommended file extension: `.hosn`
+- Recommended file extension: `.hoon`
 - Encoding: UTF-8. No BOM.
 - Key order inside an object is preserved by the parser. Order has no meaning
   unless an application decides it does.
@@ -240,7 +240,7 @@ body       = field { ws ';' ws field } [ ws ';' ];
 
 ## 10. Canonical style (for generated files)
 
-Not required — but when a tool *writes* `.hosn` files it SHOULD use:
+Not required — but when a tool *writes* `.hoon` files it SHOULD use:
 
 - 2-space indent per nesting level;
 - unquoted keys wherever the charset allows;
@@ -271,7 +271,7 @@ Example document (canonical form):
     label: "converted text"
   };
   about: """
-An example that demonstrates HOSN v0.1.
+An example that demonstrates HOON v0.1.
 Backslashes and "quotes" are literal in text blocks.
 \""" the only escape: three quotes in a row.
 """

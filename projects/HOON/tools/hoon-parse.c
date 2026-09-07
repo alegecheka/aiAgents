@@ -1,9 +1,9 @@
 /*
- * hosn-parse.c — parser + dumper for HOSN (Human Oriented Subject Notation)
+ * hoon-parse.c — parser + dumper for HOON (human oriented object notation)
  *
- * Spec: docs/hosn.md (v0.1). Zero-dependency C11.
+ * Spec: docs/hoon.md (v0.1). Zero-dependency C11.
  *
- * Usage: hosn-parse FILE...      (use "-" for stdin)
+ * Usage: hoon-parse FILE...      (use "-" for stdin)
  *
  * On success it walks the parsed subject in file order (depth-first,
  * pre-order) and prints every key with its value in nesting order, using
@@ -49,7 +49,7 @@ static void bgrow(Buf *b, size_t need)
         nc *= 2;
     b->s = realloc(b->s, nc);
     if (!b->s) {
-        fprintf(stderr, "hosn-parse: out of memory\n");
+        fprintf(stderr, "hoon-parse: out of memory\n");
         exit(2);
     }
     b->cap = nc;
@@ -763,9 +763,9 @@ int main(int argc, char **argv)
 
     if (argc < 2) {
         fprintf(stderr,
-                "usage: hosn-parse FILE...\n"
+                "usage: hoon-parse FILE...\n"
                 "  (use '-' for stdin)\n"
-                "Parses HOSN subjects and prints every key with its value in\n"
+                "Parses HOON subjects and prints every key with its value in\n"
                 "nesting order as dotted paths (arrays use [index]).\n");
         return 2;
     }

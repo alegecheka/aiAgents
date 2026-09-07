@@ -42,12 +42,12 @@ Everything else is someone else's problem.
 │       └── interaction_rules.md <- rules to save context and manage agent behavior
 ├── .gitignore           <- ignore rules
 ├── projects/            <- AI projects workspace
-│   └── HOSN/            <- HOSN project directory
+│   └── HOON/            <- HOON project directory
 │       ├── Makefile
 │       ├── docs/
-│       │   └── hosn.md
+│       │   └── hoon.md
 │       ├── tools/
-│       │   └── hosn-parse.c
+│       │   └── hoon-parse.c
 │       └── tests/
 ├── agents/              <- agent code goes here
 └── scripts/             <- bash glue. there is always bash glue
@@ -65,7 +65,7 @@ House rules:
 ## Status
 
 Work in progress. Started one commit deep with a placeholder README; now there
-is a spec (projects/HOSN/docs/hosn.md) and a working parser (projects/HOSN/tools/hosn-parse.c). More agents
+is a spec (projects/HOON/docs/hoon.md) and a working parser (projects/HOON/tools/hoon-parse.c). More agents
 are coming — or maybe they are already here and simply have not introduced
 themselves yet.
 

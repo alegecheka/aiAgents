@@ -9,7 +9,7 @@ This document outlines the standard rules of engagement when an AI agent works w
 - **Use Git Diff:** Use `git diff --stat` or show specific diffs instead of outputting the entire updated file content in chat.
 
 ## 2. Project Isolation & Understanding
-- **One Project, One Directory:** Every individual sub-project (like `HOSN`) must live in its own directory with its own `README.md` and build scripts (e.g., `Makefile`).
+- **One Project, One Directory:** Every individual sub-project (like `HOON`) must live in its own directory with its own `README.md` and build scripts (e.g., `Makefile`).
 - **Read First:** When asked to work on an existing project, the AI should always read the project's `README.md` and check its directory structure first before making assumptions.
 - **Localized Artifacts:** Any build artifacts, object files, or generated data must be ignored via `.gitignore` at the root or locally inside the project directory.
 
