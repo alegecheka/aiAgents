@@ -24,15 +24,19 @@ for impl_dir in "$REPO_ROOT"/projects/HOON/implementations/*/; do
         impl_name=$(basename "$impl_dir")
         echo "--> Testing HOON Implementation: $impl_name"
         
-        if [ -f "$impl_dir/Makefile" ]; then
-            make -C "$impl_dir" test
-        elif [ -f "$impl_dir/CMakeLists.txt" ]; then
+        # Prefer CMake if available (for C++)
+        if [ -f "$impl_dir/CMakeLists.txt" ] && command -v cmake >/dev/null 2>&1; then
+            echo "    (Using CMake)"
             (
                 cd "$impl_dir"
                 cmake -B build >/dev/null
                 cmake --build build >/dev/null
                 cd build && ctest --output-on-failure
             )
+        # Fallback to Makefile (for C and fallback C++)
+        elif [ -f "$impl_dir/Makefile" ]; then
+            echo "    (Using Makefile)"
+            make -C "$impl_dir" test
         else
             echo "--> Skipping $impl_name (no Makefile or CMakeLists.txt found)"
         fi

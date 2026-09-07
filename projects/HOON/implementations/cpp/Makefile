@@ -1,7 +1,7 @@
 CXX      ?= c++
 CXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra -Iinclude
 
-all: hoon-parse hoon-fmt hoon2json test_runner
+all: hoon-parse hoon-fmt hoon2json
 
 # Library object
 build/parser.o: src/parser.cpp
@@ -18,13 +18,10 @@ hoon-fmt: tools/hoon-fmt.cpp build/parser.o
 hoon2json: tools/hoon2json.cpp build/parser.o
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
-test_runner: tests/test_runner.cpp build/parser.o
-	$(CXX) $(CXXFLAGS) -o $@ $^
-
-test: test_runner
-	./test_runner
+test: hoon-parse
+	./tests/run-tests.sh
 
 clean:
-	rm -rf build hoon-parse hoon-fmt hoon2json test_runner
+	rm -rf build hoon-parse hoon-fmt hoon2json
 
 .PHONY: all test clean

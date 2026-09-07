@@ -1,9 +1,8 @@
 #pragma once
 #include "value.hpp"
 #include <string_view>
-#include <stdexcept>
+#include <string>
 
 namespace hoon {
-    // Throws std::runtime_error on failure
-    Value parse(std::string_view input);
+    Value parse(std::string_view input, const std::string& filename = "<input>");
 }
