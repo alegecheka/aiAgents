@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # The Core Library
-add_library(hoon_cpp src/parser.cpp)
+add_library(hoon_cpp STATIC src/parser.cpp)
 target_include_directories(hoon_cpp PUBLIC include)
 target_compile_options(hoon_cpp PRIVATE -Wall -Wextra)
 
