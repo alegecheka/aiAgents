@@ -65,7 +65,7 @@ House rules:
 ## Status
 
 Work in progress. Started one commit deep with a placeholder README; now there
-is a spec (docs/hosn.md) and a working parser (tools/hosn-parse.c). More agents
+is a spec (projects/HOSN/docs/hosn.md) and a working parser (projects/HOSN/tools/hosn-parse.c). More agents
 are coming — or maybe they are already here and simply have not introduced
 themselves yet.
 
