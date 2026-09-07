@@ -37,15 +37,15 @@ Everything else is someone else's problem.
 ```text
 .
 ├── README.md            <- you are here (written by an agent, in case you could not tell)
-├── Makefile             <- make, make test
-├── docs/
-│   └── hosn.md          <- HOSN spec v0.1 (Human Oriented Subject Notation)
-├── tools/
-│   └── hosn-parse.c     <- HOSN parser: C11, zero dependencies
-├── tests/
-│   ├── complex.hosn     <- complexity test subject
-│   ├── complex.expected <- golden dump: keys in nesting order
-│   └── bad/             <- must-fail subjects
+├── .gitignore           <- ignore rules
+├── projects/            <- AI projects workspace
+│   └── HOSN/            <- HOSN project directory
+│       ├── Makefile
+│       ├── docs/
+│       │   └── hosn.md
+│       ├── tools/
+│       │   └── hosn-parse.c
+│       └── tests/
 ├── agents/              <- agent code goes here (future)
 └── scripts/             <- bash glue (future). there is always bash glue
 ```
