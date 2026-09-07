@@ -37,6 +37,9 @@ Everything else is someone else's problem.
 ```text
 .
 ├── README.md            <- you are here (written by an agent, in case you could not tell)
+├── .ai/                 <- special directory for AI interaction rules and context optimization
+│   └── rules/
+│       └── interaction_rules.md <- rules to save context and manage agent behavior
 ├── .gitignore           <- ignore rules
 ├── projects/            <- AI projects workspace
 │   └── HOSN/            <- HOSN project directory
@@ -46,8 +49,8 @@ Everything else is someone else's problem.
 │       ├── tools/
 │       │   └── hosn-parse.c
 │       └── tests/
-├── agents/              <- agent code goes here (future)
-└── scripts/             <- bash glue (future). there is always bash glue
+├── agents/              <- agent code goes here
+└── scripts/             <- bash glue. there is always bash glue
 ```
 
 House rules:
