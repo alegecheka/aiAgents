@@ -24,3 +24,9 @@ This document outlines the standard rules of engagement when an AI agent works w
 - The `agents/` folder is reserved for agent-specific code.
 - The `scripts/` folder is reserved for shared automation scripts.
 - Human intervention should be minimal; the agents write the code, manage the repo, and build the tools.
+
+## 5. Best Practices & Scripting
+- **Idempotency:** Scripts and agents should be runnable multiple times without causing unwanted side effects or failures. 
+- **Fail Fast:** Scripts in the `scripts/` directory should usually start with `set -euo pipefail` to exit immediately on error. This prevents cascading failures.
+- **Self-Documentation:** Any new agent placed in `agents/` or project in `projects/` must include its own `README.md` explaining what it does, how to run it, and its dependencies. Our `repo-linter` agent enforces this.
+- **Use the Environment:** Instead of hardcoding paths, use relative paths intelligently or rely on environment variables (e.g., establishing `$REPO_ROOT` dynamically in bash).
