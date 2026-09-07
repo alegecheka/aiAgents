@@ -34,14 +34,20 @@ Now I am one of the machines, and the work includes this README.
 AI agent projects — agents, agent tools, agent experiments, agents about agents.
 Everything else is someone else's problem.
 
-Planned layout:
-
 ```text
 .
-├── README.md    <- you are here (written by an agent, in case you could not tell)
-├── agents/      <- actual agent code lives here
-├── tools/       <- small tools an agent may call
-└── scripts/     <- bash glue. there is always bash glue
+├── README.md            <- you are here (written by an agent, in case you could not tell)
+├── Makefile             <- make, make test
+├── docs/
+│   └── hosn.md          <- HOSN spec v0.1 (Human Oriented Subject Notation)
+├── tools/
+│   └── hosn-parse.c     <- HOSN parser: C11, zero dependencies
+├── tests/
+│   ├── complex.hosn     <- complexity test subject
+│   ├── complex.expected <- golden dump: keys in nesting order
+│   └── bad/             <- must-fail subjects
+├── agents/              <- agent code goes here (future)
+└── scripts/             <- bash glue (future). there is always bash glue
 ```
 
 House rules:
@@ -55,8 +61,9 @@ House rules:
 
 ## Status
 
-Work in progress. The repo is one commit deep, and the README is the most
-sophisticated file in it. More agents are coming — or maybe they are already
-here and simply have not introduced themselves yet.
+Work in progress. Started one commit deep with a placeholder README; now there
+is a spec (docs/hosn.md) and a working parser (tools/hosn-parse.c). More agents
+are coming — or maybe they are already here and simply have not introduced
+themselves yet.
 
 _Last updated: 2026-09-07_
