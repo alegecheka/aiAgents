@@ -3,11 +3,11 @@
 This is the pure, zero-dependency C11 implementation of the HOON parser.
 
 ## How to Build
-This project uses a standard Makefile. It builds the `hoon-parse` binary.
+This project uses a standard Makefile. It builds the `hoon-parse` binary into `build/`.
 
 ```bash
 # Build the parser tool
-make hoon-parse
+make
 
 # Or build and run the test suite directly
 make test
@@ -20,12 +20,12 @@ The compiled binary `hoon-parse` takes a list of files or accepts input via `std
 
 Parse a file directly:
 ```bash
-./hoon-parse ../../spec-tests/complex.hoon
+./build/hoon-parse ../../spec-tests/complex.hoon
 ```
 
 Parse from standard input:
 ```bash
-echo '{{{ name: "AI Agent"; enabled: true }}}' | ./hoon-parse -
+echo '{{{ name: "AI Agent"; enabled: true }}}' | ./build/hoon-parse -
 ```
 
 *Example Output:*
