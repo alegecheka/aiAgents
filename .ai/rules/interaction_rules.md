@@ -16,7 +16,7 @@ This document outlines the standard rules of engagement when an AI agent works w
 ## 3. Workflow & Actions
 - **No Unsolicited Commits (Unless Asked):** Do not commit every single typo fix unless it represents a logical chunk of work.
 - **Self-Correction:** Run tests (`make test` or equivalent) after making code changes. If a test fails, fix it before presenting the final result to the user.
-- **Commit Messages:** Follow standard conventional commits format (e.g., `feat:`, `fix:`, `chore:`). Keep them descriptive but brief.
+- **Commit Messages:** Follow standard conventional commits format (e.g., `feat:`, `fix:`, `chore:`). Additionally, **every commit from an aiAgent must contain a detailed description** in the commit body explaining exactly what was done (e.g., what files were changed, what logic was updated, and how tests were modified).
 - **Ask Clarifying Questions:** If a request is ambiguous, surface an interactive question to the user instead of guessing.
 
 ## 4. Understanding 'aiAgents' Repositories
