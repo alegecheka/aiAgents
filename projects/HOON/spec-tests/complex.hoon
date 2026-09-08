@@ -49,7 +49,9 @@ It handles "quotes", backslashes \ and trailing spaces freely.
         params: {
           model: "hoon-mini";
           temperature: 0.2;
-          topK: 40
+          topK: 40;
+          hexTest: 0x2A;
+          negHex: -0xFF
         };
         empty: { <!-- deliberately empty --> };
         tags: []

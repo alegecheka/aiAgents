@@ -154,16 +154,19 @@ Rules:
 
 ## 5. Numbers
 
-Plain decimal only, optionally signed:
+Plain decimal optionally signed, or hexadecimal prefixed with `0x`:
 
 ```ebnf
-number  = '-'? intPart [ '.' digit { digit } ] [ ('e' | 'E') ['+' | '-'] digit { digit } ]
-intPart = '0' | [1-9] { digit }
+number   = '-'? intPart [ '.' digit { digit } ] [ ('e' | 'E') ['+' | '-'] digit { digit } ]
+         | '-'? '0x' hexDigit { hexDigit };
+intPart  = '0' | [1-9] { digit };
+hexDigit = digit | [a-fA-F];
 ```
 
-- `0`, `-7`, `42`, `3.14`, `-0.5`, `1e9`, `6.02E23`
-- No hex, octal, binary, `Infinity`, `NaN` or leading `+` in v0.1.
-- No leading zeros: `01` is an error (`0` and `0.5` are fine).
+- Decimal: `0`, `-7`, `42`, `3.14`, `-0.5`, `1e9`, `6.02E23`
+- Hexadecimal: `0x2A`, `-0xFF`
+- No octal, binary, `Infinity`, `NaN` or leading `+` in v0.1.
+- No leading zeros for decimal: `01` is an error (`0` and `0.5` are fine).
 - `-0` is `0`. A float with empty fraction (`1.`) is an error.
 
 ---
@@ -303,7 +306,7 @@ Backslashes and "quotes" are literal in text blocks.
 - Embedded subjects: allow `{{{ }}}` documents nested inside documents?
 - `include` / `import` directives between files?
 - Preserving comments on parse (round-trip support)?
-- Hex (`0x1F`) and binary numbers?
+- Binary numbers (`0b101`)?
 - Multi-document files separated by a marker?
 - Type directives / schema validation?
 - Anything you want to add — this list is yours.

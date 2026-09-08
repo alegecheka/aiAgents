@@ -141,31 +141,41 @@ struct ParserState {
 
     Value parse_number() {
         std::string t;
-        bool sawdot = false, sawexp = false;
+        bool sawdot = false, sawexp = false, is_hex = false;
 
         if (cur() == '-') { t.push_back('-'); nextc(); }
+        
         if (cur() == '0') {
             t.push_back('0'); nextc();
-            if (std::isdigit(cur())) fail("number may not have leading zeros");
+            if (cur() == 'x' || cur() == 'X') {
+                is_hex = true;
+                t.push_back(cur()); nextc();
+                if (!std::isxdigit(cur())) fail("expected a hex digit after 0x");
+                while (std::isxdigit(cur())) { t.push_back(cur()); nextc(); }
+            } else if (std::isdigit(cur())) {
+                fail("number may not have leading zeros");
+            }
         } else if (cur() >= '1' && cur() <= '9') {
             while (std::isdigit(cur())) { t.push_back(cur()); nextc(); }
         } else {
             fail("expected a digit in number");
         }
         
-        if (cur() == '.') {
-            sawdot = true;
-            t.push_back('.'); nextc();
-            if (!std::isdigit(cur())) fail("expected a digit after the decimal point");
-            while (std::isdigit(cur())) { t.push_back(cur()); nextc(); }
-        }
-        
-        if (cur() == 'e' || cur() == 'E') {
-            sawexp = true;
-            t.push_back(cur()); nextc();
-            if (cur() == '+' || cur() == '-') { t.push_back(cur()); nextc(); }
-            if (!std::isdigit(cur())) fail("expected a digit in the exponent");
-            while (std::isdigit(cur())) { t.push_back(cur()); nextc(); }
+        if (!is_hex) {
+            if (cur() == '.') {
+                sawdot = true;
+                t.push_back('.'); nextc();
+                if (!std::isdigit(cur())) fail("expected a digit after the decimal point");
+                while (std::isdigit(cur())) { t.push_back(cur()); nextc(); }
+            }
+            
+            if (cur() == 'e' || cur() == 'E') {
+                sawexp = true;
+                t.push_back(cur()); nextc();
+                if (cur() == '+' || cur() == '-') { t.push_back(cur()); nextc(); }
+                if (!std::isdigit(cur())) fail("expected a digit in the exponent");
+                while (std::isdigit(cur())) { t.push_back(cur()); nextc(); }
+            }
         }
         
         int c = cur();
@@ -175,7 +185,7 @@ struct ParserState {
             return Value(std::stod(t));
         } else {
             try {
-                return Value(std::stoll(t, nullptr, 10));
+                return Value(std::stoll(t, nullptr, is_hex ? 16 : 10));
             } catch(...) {
                 fail("integer out of range");
             }
