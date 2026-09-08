@@ -1,8 +1,8 @@
-# HOSN — Human Oriented Subject Notation
+# HOON — human oriented object notation
 
 A human-readable data notation for documents, subjects and files.
 Like JSON, but written for people first and parsers second.
-Short name: **HOSN**. Extension: `.hosn`. Each `{{{ ... }}}` document is a **subject**.
+Short name: **HOON**. Extension: `.hoon`. Each `{{{ ... }}}` document is a **subject**.
 (Previously drafted as "SubjectNotation" with `.subject` files.)
 
 Status: **draft for discussion**. Nothing here is final until we say it is.
@@ -36,7 +36,7 @@ Status: **draft for discussion**. Nothing here is final until we say it is.
 - The triple-brace form is used **only** for the document root.
   Everything nested inside is a plain object in **single braces** `{ ... }`.
 - Double braces `{{ ... }}` are **reserved** and are an error in v0.1.
-- Recommended file extension: `.hosn`
+- Recommended file extension: `.hoon`
 - Encoding: UTF-8. No BOM.
 - Key order inside an object is preserved by the parser. Order has no meaning
   unless an application decides it does.
@@ -154,16 +154,19 @@ Rules:
 
 ## 5. Numbers
 
-Plain decimal only, optionally signed:
+Plain decimal optionally signed, or hexadecimal prefixed with `0x`:
 
 ```ebnf
-number  = '-'? intPart [ '.' digit { digit } ] [ ('e' | 'E') ['+' | '-'] digit { digit } ]
-intPart = '0' | [1-9] { digit }
+number   = '-'? intPart [ '.' digit { digit } ] [ ('e' | 'E') ['+' | '-'] digit { digit } ]
+         | '-'? '0x' hexDigit { hexDigit };
+intPart  = '0' | [1-9] { digit };
+hexDigit = digit | [a-fA-F];
 ```
 
-- `0`, `-7`, `42`, `3.14`, `-0.5`, `1e9`, `6.02E23`
-- No hex, octal, binary, `Infinity`, `NaN` or leading `+` in v0.1.
-- No leading zeros: `01` is an error (`0` and `0.5` are fine).
+- Decimal: `0`, `-7`, `42`, `3.14`, `-0.5`, `1e9`, `6.02E23`
+- Hexadecimal: `0x2A`, `-0xFF`
+- No octal, binary, `Infinity`, `NaN` or leading `+` in v0.1.
+- No leading zeros for decimal: `01` is an error (`0` and `0.5` are fine).
 - `-0` is `0`. A float with empty fraction (`1.`) is an error.
 
 ---
@@ -240,7 +243,7 @@ body       = field { ws ';' ws field } [ ws ';' ];
 
 ## 10. Canonical style (for generated files)
 
-Not required — but when a tool *writes* `.hosn` files it SHOULD use:
+Not required — but when a tool *writes* `.hoon` files it SHOULD use:
 
 - 2-space indent per nesting level;
 - unquoted keys wherever the charset allows;
@@ -271,7 +274,7 @@ Example document (canonical form):
     label: "converted text"
   };
   about: """
-An example that demonstrates HOSN v0.1.
+An example that demonstrates HOON v0.1.
 Backslashes and "quotes" are literal in text blocks.
 \""" the only escape: three quotes in a row.
 """
@@ -303,7 +306,7 @@ Backslashes and "quotes" are literal in text blocks.
 - Embedded subjects: allow `{{{ }}}` documents nested inside documents?
 - `include` / `import` directives between files?
 - Preserving comments on parse (round-trip support)?
-- Hex (`0x1F`) and binary numbers?
+- Binary numbers (`0b101`)?
 - Multi-document files separated by a marker?
 - Type directives / schema validation?
 - Anything you want to add — this list is yours.

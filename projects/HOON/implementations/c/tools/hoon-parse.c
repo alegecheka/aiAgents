@@ -1,9 +1,9 @@
 /*
- * hosn-parse.c — parser + dumper for HOSN (Human Oriented Subject Notation)
+ * hoon-parse.c — parser + dumper for HOON (human oriented object notation)
  *
- * Spec: docs/hosn.md (v0.1). Zero-dependency C11.
+ * Spec: docs/hoon.md (v0.1). Zero-dependency C11.
  *
- * Usage: hosn-parse FILE...      (use "-" for stdin)
+ * Usage: hoon-parse FILE...      (use "-" for stdin)
  *
  * On success it walks the parsed subject in file order (depth-first,
  * pre-order) and prints every key with its value in nesting order, using
@@ -49,7 +49,7 @@ static void bgrow(Buf *b, size_t need)
         nc *= 2;
     b->s = realloc(b->s, nc);
     if (!b->s) {
-        fprintf(stderr, "hosn-parse: out of memory\n");
+        fprintf(stderr, "hoon-parse: out of memory\n");
         exit(2);
     }
     b->cap = nc;
@@ -443,6 +443,7 @@ static Node *parse_number(P *p)
     Buf t = {0};
     Node *n;
     int sawdot = 0, sawexp = 0, c;
+    int is_hex = 0;
 
     if (cur(p) == '-') {
         bputc(&t, '-');
@@ -451,8 +452,19 @@ static Node *parse_number(P *p)
     if (cur(p) == '0') {
         bputc(&t, '0');
         nextc(p);
-        if (isdigit(cur(p)))
+        if (cur(p) == 'x' || cur(p) == 'X') {
+            is_hex = 1;
+            bputc(&t, (char)cur(p));
+            nextc(p);
+            if (!isxdigit(cur(p)))
+                fail(p, "expected a hex digit after 0x");
+            while (isxdigit(cur(p))) {
+                bputc(&t, (char)cur(p));
+                nextc(p);
+            }
+        } else if (isdigit(cur(p))) {
             fail(p, "number may not have leading zeros");
+        }
     } else if (cur(p) >= '1' && cur(p) <= '9') {
         while (isdigit(cur(p))) {
             bputc(&t, (char)cur(p));
@@ -461,32 +473,36 @@ static Node *parse_number(P *p)
     } else {
         fail(p, "expected a digit in number");
     }
-    if (cur(p) == '.') {
-        sawdot = 1;
-        bputc(&t, '.');
-        nextc(p);
-        if (!isdigit(cur(p)))
-            fail(p, "expected a digit after the decimal point");
-        while (isdigit(cur(p))) {
+    
+    if (!is_hex) {
+        if (cur(p) == '.') {
+            sawdot = 1;
+            bputc(&t, '.');
+            nextc(p);
+            if (!isdigit(cur(p)))
+                fail(p, "expected a digit after the decimal point");
+            while (isdigit(cur(p))) {
+                bputc(&t, (char)cur(p));
+                nextc(p);
+            }
+        }
+        if (cur(p) == 'e' || cur(p) == 'E') {
+            sawexp = 1;
             bputc(&t, (char)cur(p));
             nextc(p);
+            if (cur(p) == '+' || cur(p) == '-') {
+                bputc(&t, (char)cur(p));
+                nextc(p);
+            }
+            if (!isdigit(cur(p)))
+                fail(p, "expected a digit in the exponent");
+            while (isdigit(cur(p))) {
+                bputc(&t, (char)cur(p));
+                nextc(p);
+            }
         }
     }
-    if (cur(p) == 'e' || cur(p) == 'E') {
-        sawexp = 1;
-        bputc(&t, (char)cur(p));
-        nextc(p);
-        if (cur(p) == '+' || cur(p) == '-') {
-            bputc(&t, (char)cur(p));
-            nextc(p);
-        }
-        if (!isdigit(cur(p)))
-            fail(p, "expected a digit in the exponent");
-        while (isdigit(cur(p))) {
-            bputc(&t, (char)cur(p));
-            nextc(p);
-        }
-    }
+    
     c = cur(p);
     if (c && (isalnum(c) || c == '_' || c == '-' || c == '.'))
         fail(p, "malformed number");
@@ -500,7 +516,7 @@ static Node *parse_number(P *p)
         char *end = NULL;
         errno = 0;
         n->t = T_INT;
-        n->i = strtoll(t.s, &end, 10);
+        n->i = strtoll(t.s, &end, is_hex ? 16 : 10);
         if (errno == ERANGE)
             fail(p, "integer out of range");
     }
@@ -763,9 +779,9 @@ int main(int argc, char **argv)
 
     if (argc < 2) {
         fprintf(stderr,
-                "usage: hosn-parse FILE...\n"
+                "usage: hoon-parse FILE...\n"
                 "  (use '-' for stdin)\n"
-                "Parses HOSN subjects and prints every key with its value in\n"
+                "Parses HOON subjects and prints every key with its value in\n"
                 "nesting order as dotted paths (arrays use [index]).\n");
         return 2;
     }

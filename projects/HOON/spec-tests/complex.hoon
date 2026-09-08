@@ -1,5 +1,5 @@
 {{{<!-- ============================================================
-     HOSN complexity test subject.
+     HOON complexity test subject.
      Exercises every v0.1 feature: comments, quoted keys, text
      blocks, numbers, nesting, arrays, unicode escapes, empties.
      ============================================================ -->
@@ -47,9 +47,11 @@ It handles "quotes", backslashes \ and trailing spaces freely.
       {
         name: "summarize";
         params: {
-          model: "hosn-mini";
+          model: "hoon-mini";
           temperature: 0.2;
-          topK: 40
+          topK: 40;
+          hexTest: 0x2A;
+          negHex: -0xFF
         };
         empty: { <!-- deliberately empty --> };
         tags: []

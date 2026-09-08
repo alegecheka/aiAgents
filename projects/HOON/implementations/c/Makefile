@@ -1,13 +1,13 @@
 CC      ?= cc
 CFLAGS  ?= -std=c11 -O2 -Wall -Wextra -Wpedantic
 
-hosn-parse: tools/hosn-parse.c
+hoon-parse: tools/hoon-parse.c
 	$(CC) $(CFLAGS) -o $@ $<
 
-test: hosn-parse
+test: hoon-parse
 	./tests/run-tests.sh
 
 clean:
-	rm -f hosn-parse
+	rm -f hoon-parse
 
 .PHONY: test clean

@@ -1,1 +1,5 @@
-/hosn-parse
+/projects/HOON/hoon-parse
+*.o
+*.a
+*.dll
+/build/*

@@ -33,9 +33,11 @@ pipeline.stages[0].output.kind: "stream"
 pipeline.stages[0].output.channels[0]: "text"
 pipeline.stages[0].output.channels[1]: "meta"
 pipeline.stages[1].name: "summarize"
-pipeline.stages[1].params.model: "hosn-mini"
+pipeline.stages[1].params.model: "hoon-mini"
 pipeline.stages[1].params.temperature: 0.2
 pipeline.stages[1].params.topK: 40
+pipeline.stages[1].params.hexTest: 42
+pipeline.stages[1].params.negHex: -255
 pipeline.stages[1].empty: {}
 pipeline.stages[1].tags: []
 pipeline.hooks.onStart.run: "bash"
