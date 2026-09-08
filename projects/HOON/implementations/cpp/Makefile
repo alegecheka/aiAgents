@@ -1,38 +1,43 @@
 CXX      ?= c++
 CXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra -Iinclude
 AR       ?= ar
+BUILD    ?= build
 
-all: hoon-parse hoon-fmt hoon2json basic_usage stdin_reader
+BINS := hoon-parse hoon-fmt hoon2json basic_usage stdin_reader
+
+all: $(addprefix $(BUILD)/,$(BINS))
 
 # The Core Library
-build/libhoon.a: build/parser.o
-	@mkdir -p build
+$(BUILD)/libhoon.a: $(BUILD)/parser.o
 	$(AR) rcs $@ $^
 
-build/parser.o: src/parser.cpp
-	@mkdir -p build
+$(BUILD)/parser.o: src/parser.cpp
+	@mkdir -p $(BUILD)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 # Executables
-hoon-parse: tools/hoon-parse.cpp build/libhoon.a
-	$(CXX) $(CXXFLAGS) -o $@ $< -Lbuild -lhoon
+$(BUILD)/hoon-parse: tools/hoon-parse.cpp $(BUILD)/libhoon.a
+	$(CXX) $(CXXFLAGS) -o $@ $< -L$(BUILD) -lhoon
 
-hoon-fmt: tools/hoon-fmt.cpp build/libhoon.a
-	$(CXX) $(CXXFLAGS) -o $@ $< -Lbuild -lhoon
+$(BUILD)/hoon-fmt: tools/hoon-fmt.cpp $(BUILD)/libhoon.a
+	$(CXX) $(CXXFLAGS) -o $@ $< -L$(BUILD) -lhoon
 
-hoon2json: tools/hoon2json.cpp build/libhoon.a
-	$(CXX) $(CXXFLAGS) -o $@ $< -Lbuild -lhoon
+$(BUILD)/hoon2json: tools/hoon2json.cpp $(BUILD)/libhoon.a
+	$(CXX) $(CXXFLAGS) -o $@ $< -L$(BUILD) -lhoon
 
-basic_usage: examples/basic_usage.cpp build/libhoon.a
-	$(CXX) $(CXXFLAGS) -o $@ $< -Lbuild -lhoon
+$(BUILD)/basic_usage: examples/basic_usage.cpp $(BUILD)/libhoon.a
+	$(CXX) $(CXXFLAGS) -o $@ $< -L$(BUILD) -lhoon
 
-stdin_reader: examples/stdin_reader.cpp build/libhoon.a
-	$(CXX) $(CXXFLAGS) -o $@ $< -Lbuild -lhoon
+$(BUILD)/stdin_reader: examples/stdin_reader.cpp $(BUILD)/libhoon.a
+	$(CXX) $(CXXFLAGS) -o $@ $< -L$(BUILD) -lhoon
 
-test: hoon-parse
+# Convenience aliases: `make hoon-parse` builds build/hoon-parse
+$(BINS): %: $(BUILD)/%
+
+test: $(BUILD)/hoon-parse
 	./tests/run-tests.sh
 
 clean:
-	rm -rf build hoon-parse hoon-fmt hoon2json basic_usage stdin_reader
+	rm -rf $(BUILD)
 
-.PHONY: all test clean
+.PHONY: all test clean $(BINS)

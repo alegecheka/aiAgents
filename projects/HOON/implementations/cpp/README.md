@@ -19,14 +19,14 @@ cmake --build build
 
 **Using Make:**
 ```bash
-make all
+make all   # outputs go to build/
 ```
 
 ## How to Run & Command-Line Examples
 
 Once built, you can run the parsing tool directly to evaluate HOON files:
 ```bash
-./hoon-parse ../../../spec-tests/complex.hoon
+./build/hoon-parse ../../../spec-tests/complex.hoon
 ```
 
 ### Basic Usage Example
@@ -35,7 +35,7 @@ Linking against `libhoon` allows you to parse HOON documents directly into a C++
 You can compile and run the in-memory parsing example directly using the `basic_usage` target:
 ```bash
 make basic_usage
-./basic_usage
+./build/basic_usage
 ```
 
 ### Stdin Reader Example
@@ -43,7 +43,7 @@ We also provide `stdin_reader`, which demonstrates how to accept HOON input thro
 
 ```bash
 make stdin_reader
-echo '{{{ name: "AI Agent"; values: [1, 2.5, false, 0x1A] }}}' | ./stdin_reader
+echo '{{{ name: "AI Agent"; values: [1, 2.5, false, 0x1A] }}}' | ./build/stdin_reader
 ```
 
 ## Agent's Opinion

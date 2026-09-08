@@ -1,13 +1,17 @@
 CC      ?= cc
 CFLAGS  ?= -std=c11 -O2 -Wall -Wextra -Wpedantic
+BUILD   ?= build
 
-hoon-parse: tools/hoon-parse.c
+all: $(BUILD)/hoon-parse
+
+$(BUILD)/hoon-parse: tools/hoon-parse.c
+	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -o $@ $<
 
-test: hoon-parse
+test: $(BUILD)/hoon-parse
 	./tests/run-tests.sh
 
 clean:
-	rm -f hoon-parse
+	rm -rf $(BUILD)
 
-.PHONY: test clean
+.PHONY: all test clean

@@ -5,18 +5,8 @@
 *.so
 *.dylib
 
-# CMake / Make build directories (any depth)
+# All compiled output (executables, libs, generated code) lives in build/
 build/
-
-# C / C++ executables built into the implementation roots
-# (rooted so tools/hoon-parse.c and python/tools/hoon-parse stay tracked)
-/projects/HOON/implementations/c/hoon-parse
-/projects/HOON/implementations/cpp/hoon-parse
-/projects/HOON/implementations/cpp/hoon-fmt
-/projects/HOON/implementations/cpp/hoon2json
-/projects/HOON/implementations/cpp/basic_usage
-/projects/HOON/implementations/cpp/stdin_reader
-!projects/HOON/implementations/python/tools/hoon-parse
 
 # Python artifacts
 __pycache__/
