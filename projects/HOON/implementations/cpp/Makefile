@@ -35,7 +35,7 @@ $(BUILD)/stdin_reader: examples/stdin_reader.cpp $(BUILD)/libhoon.a
 $(BINS): %: $(BUILD)/%
 
 test: $(BUILD)/hoon-parse
-	./tests/run-tests.sh
+	BUILD=$(BUILD) ./tests/run-tests.sh
 
 clean:
 	rm -rf $(BUILD)

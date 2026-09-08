@@ -9,7 +9,7 @@ $(BUILD)/hoon-parse: tools/hoon-parse.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 test: $(BUILD)/hoon-parse
-	./tests/run-tests.sh
+	BUILD=$(BUILD) ./tests/run-tests.sh
 
 clean:
 	rm -rf $(BUILD)

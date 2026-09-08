@@ -3,7 +3,7 @@ set -u
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 spec="$(cd "$root/../../spec-tests" && pwd)"
-bin="$root/build/hoon-parse"
+bin="$root/${BUILD:-build}/hoon-parse"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
