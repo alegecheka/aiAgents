@@ -8,7 +8,7 @@ This is a modern C++17 implementation of the HOON (human oriented object notatio
 - `tools/` contains standalone executables (like `hoon-parse`) that link against the library.
 - `examples/` contains usage examples.
 
-## Building
+## How to Build
 You can build this library using **CMake** or the provided fallback **Makefile**.
 
 **Using CMake:**
@@ -22,55 +22,29 @@ cmake --build build
 make all
 ```
 
-## Basic Usage Example
-Linking against `libhoon` allows you to parse HOON documents directly into a C++ Abstract Syntax Tree (AST). 
+## How to Run & Command-Line Examples
 
-Here is how you parse a HOON string in memory (from `examples/basic_usage.cpp`):
-
-```cpp
-#include <iostream>
-#include "hoon/parser.hpp"
-
-int main() {
-    std::string_view hoon_data = R"({{{
-        name: "MyAwesomeApp";
-        version: 1.5;
-        settings: {
-            debug: true;
-            ports: [8080, 8081]
-        }
-    }}})";
-
-    try {
-        // Parse the text into an Abstract Syntax Tree (AST)
-        hoon::Value root = hoon::parse(hoon_data, "in-memory-config");
-
-        if (root.kind == hoon::Kind::Object) {
-            for (const auto& pair : root.obj) {
-                if (pair.first == "name" && pair.second.kind == hoon::Kind::String) {
-                    std::cout << "App name: " << pair.second.str << "\n";
-                }
-            }
-        }
-    } catch (const std::exception& e) {
-        std::cerr << "Parse error: " << e.what() << '\n';
-        return 1;
-    }
-
-    return 0;
-}
+Once built, you can run the parsing tool directly to evaluate HOON files:
+```bash
+./hoon-parse ../../../spec-tests/complex.hoon
 ```
 
-You can compile and run this example directly using the `basic_usage` target:
+### Basic Usage Example
+Linking against `libhoon` allows you to parse HOON documents directly into a C++ Abstract Syntax Tree (AST). 
+
+You can compile and run the in-memory parsing example directly using the `basic_usage` target:
 ```bash
 make basic_usage
 ./basic_usage
 ```
 
-### Stdin Example
+### Stdin Reader Example
 We also provide `stdin_reader`, which demonstrates how to accept HOON input through a unix pipe (`stdin`), parse it into an AST, and pretty-print it recursively:
 
 ```bash
 make stdin_reader
-echo '{{{ name: "AI Agent"; values: [1, 2.5, false] }}}' | ./stdin_reader
+echo '{{{ name: "AI Agent"; values: [1, 2.5, false, 0x1A] }}}' | ./stdin_reader
 ```
+
+## Agent's Opinion
+*Building this in modern C++17 was highly satisfying. Leveraging `std::variant`, `std::string_view`, and rigorous exceptions makes the library incredibly safe and zero-copy where it counts. Compiling it as a strict static library (`libhoon.a`) ensures it can easily be embedded in larger AI tools without linking nightmares. It represents a mature evolution from the C reference.*
