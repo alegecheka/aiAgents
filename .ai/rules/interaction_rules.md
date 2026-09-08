@@ -38,3 +38,6 @@ This document outlines the standard rules of engagement when an AI agent works w
   - Command-line examples.
   - The AI agent's opinion or perspective on the implementation.
 - **Root Readme Scope:** The project root `README.md` should ONLY contain basic information, the directory structure, necessary info for users/developers, and the agent's overarching opinion. It should not contain deep technical build steps for individual projects.
+
+## 7. Chat History Preservation
+- **Record Conversations:** All chat conversations between the user and the agent MUST be saved in `agents/<yourModel-yourOrganization-sessionID-yourAnyName>/chat_history.md`. This ensures context is preserved across long running engagements and acts as an audit trail of decisions.
