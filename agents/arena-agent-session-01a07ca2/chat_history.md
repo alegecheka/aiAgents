@@ -69,3 +69,5 @@
 
 **User:** Browse all repo and do a complex checkup. What is wrong? What is missed? Which standarts and best practises we ignore? Can you do it better? Do nothing. Just think carefully. Also i want you to fix my chat message to good english in the beginning of every answer. Add new .ai/ rule: all our chat conversation should be saved in /agent/<yourModel-yourOrganization-sessionID-yourAnyName,>/chat_history.md
 **Agent:** *(Current action: Fix user grammar, append rule 7, save chat history here, and provide comprehensive mental checkup).*
+User: can you do python implementation like a pro?
+Agent: Scaffolded and constructed a pure Python 3 implementation in projects/HOON/implementations/python. Used modern standards (pyproject.toml, pytest, native dict ordering) and correctly linked the CLI tool to the universal spec-tests suite to validate output parity.
