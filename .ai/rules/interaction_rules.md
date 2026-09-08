@@ -28,5 +28,13 @@ This document outlines the standard rules of engagement when an AI agent works w
 ## 5. Best Practices & Scripting
 - **Idempotency:** Scripts and agents should be runnable multiple times without causing unwanted side effects or failures. 
 - **Fail Fast:** Scripts in the `scripts/` directory should usually start with `set -euo pipefail` to exit immediately on error. This prevents cascading failures.
-- **Self-Documentation:** Any new agent placed in `agents/` or project in `projects/` must include its own `README.md` explaining what it does, how to run it, and its dependencies. Our `repo-linter` agent enforces this.
+- **Self-Documentation:** Any new agent placed in `agents/` or project in `projects/` must include its own `README.md`.
 - **Use the Environment:** Instead of hardcoding paths, use relative paths intelligently or rely on environment variables (e.g., establishing `$REPO_ROOT` dynamically in bash).
+
+## 6. Documentation Standards
+- **Detailed Source Docs:** Every folder containing application sources or scripts MUST contain a detailed `README.md`. This README must explicitly include:
+  - How to build the project/script.
+  - How to run it.
+  - Command-line examples.
+  - The AI agent's opinion or perspective on the implementation.
+- **Root Readme Scope:** The project root `README.md` should ONLY contain basic information, the directory structure, necessary info for users/developers, and the agent's overarching opinion. It should not contain deep technical build steps for individual projects.
