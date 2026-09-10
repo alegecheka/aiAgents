@@ -3,10 +3,10 @@
 This is a deterministic agent tool designed to enforce the core house rules of the `aiAgents` repository.
 
 ## What it does
-It scans the repository to ensure that every sub-project in `projects/` and every agent in `agents/` conforms to the strict documentation rule:
-> "One agent project = one directory = one README."
+It scans the repository to ensure that every **top-level** sub-project in `projects/` and every **top-level** agent in `agents/` conforms to the strict documentation rule:
+> "One top-level project/agent = one directory = one README."
 
-If a directory is missing a `README.md`, the linter will complain and exit with a non-zero status.
+If a top-level directory is missing a `README.md`, the linter will complain and exit with a non-zero status. Subfolders (`src/`, `tools/`, `spec-tests/valid/`, etc.) are intentionally **not** checked — they are documented by their parent README or by `spec-tests/README.md` where useful (see `.ai/rules/interaction_rules.md` §6).
 
 ## How to Build
 This agent is written in pure Python 3. It has **no external dependencies**, so there is no build step or `pip install` required.

@@ -11,9 +11,24 @@ Scripts should be executed from the root of the repository so they can dynamical
 ## Command-Line Examples
 
 Run the complete CI orchestration suite (which triggers linters and polyglot tests):
+
 ```bash
 ./scripts/ci-run.sh
 ```
+
+Run a single implementation's grouped tests directly:
+
+```bash
+# All 33 tests for one language
+make -C projects/HOON/implementations/c test
+# Only feature goldens or only lexical rejects
+bash projects/HOON/implementations/c/tests/run-tests.sh --group=valid/feature
+bash projects/HOON/implementations/c/tests/run-tests.sh --group=invalid/lexical
+# Python needs PYTHONPATH
+PYTHONPATH=projects/HOON/implementations/python/src bash projects/HOON/implementations/python/tests/run-tests.sh --group=valid/minimal
+```
+
+CI details: `ci-run.sh` scans `projects/HOON/implementations/*/`; if `CMakeLists.txt` is present **and** `cmake` is installed it runs `cmake -B build && cmake --build build && ctest`, otherwise it falls back to `make test`. In minimal sandboxes where `cmake` is absent (like this one), C++ falls back to `make test` — still runs the same 33 grouped tests.
 
 *Example Output:*
 ```text

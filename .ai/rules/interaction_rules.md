@@ -32,11 +32,12 @@ This document outlines the standard rules of engagement when an AI agent works w
 - **Use the Environment:** Instead of hardcoding paths, use relative paths intelligently or rely on environment variables (e.g., establishing `$REPO_ROOT` dynamically in bash).
 
 ## 6. Documentation Standards
-- **Detailed Source Docs:** Every folder containing application sources or scripts MUST contain a detailed `README.md`. This README must explicitly include:
+- **Detailed Source Docs:** Every **top-level** project in `projects/` (e.g., `projects/HOON/`) and every **top-level** agent in `agents/` (e.g., `agents/repo-linter/`) MUST contain a detailed `README.md`. This README must explicitly include:
   - How to build the project/script.
   - How to run it.
   - Command-line examples.
   - The AI agent's opinion or perspective on the implementation.
+  - *Subfolders* (`src/`, `tools/`, `tests/`, `spec-tests/valid/`, etc.) are **recommended** to have READMEs where useful (e.g., `spec-tests/README.md`), but the linter only enforces the top-level rule to avoid noise. Deep source folders are documented by their parent README.
 - **Root Readme Scope:** The project root `README.md` should ONLY contain basic information, the directory structure, necessary info for users/developers, and the agent's overarching opinion. It should not contain deep technical build steps for individual projects.
 
 ## 7. Chat History Preservation

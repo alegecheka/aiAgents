@@ -86,6 +86,8 @@ If a key must contain anything else (a space, a dot, a digit first), quote it:
 "my odd key": "still works";
 ```
 
+Quoted keys may be any string, including `""` (empty string) — discouraged because its dotted-path dump is ambiguous (`: "val"`).
+
 ### 3.2 Values
 
 A value is one of:
@@ -149,6 +151,8 @@ Rules:
   right before the closing `"""` are **not part of the content** — so the
   natural "text starts on the next line" style yields clean text without a
   stray `\n` at the start or end.
+- Consequently, both `"""\n"""` and `""""""` (six quotes) denote an empty string `""`, and
+  `"""inline"""` (no surrounding newlines) denotes `"inline"`.
 
 ---
 
@@ -225,8 +229,10 @@ bareKey    = [A-Za-z_] { [A-Za-z0-9_-] };
 string     = '"' { char | escape } '"';
 text       = '"""' { rawchar } '"""';          (* rawchar: literal; \""" -> """ *)
 escape     = '\"' | '\\' | '\n' | '\t' | '\r' | '\u' hex hex hex hex;
-number     = '-'? intPart ['.' digit { digit }] [('e'|'E') ['+'|'-'] digit { digit }];
+number     = '-'? intPart ['.' digit { digit }] [('e'|'E') ['+'|'-'] digit { digit }]
+           | '-'? '0x' hexDigit { hexDigit };
 intPart    = '0' | [1-9] { digit };
+hexDigit   = digit | [a-fA-F];
 bool       = 'true' | 'false';
 null       = 'null';
 
@@ -285,23 +291,43 @@ Backslashes and "quotes" are literal in text blocks.
 
 ## 11. Common errors (a parser must reject these)
 
-| you write                          | why                                       |
-|------------------------------------|-------------------------------------------|
-| `mode: auto`                       | bare word value — quote it                |
-| `a: 1 b: 2`                        | missing `;` between fields                |
-| `key "value"`                      | missing `:`                               |
-| `x: "unterminated`                 | unterminated string                       |
-| `x: "a`<br>`b"`                    | quoted strings must close on one line — use `"""` |
-| `x: """abc`                        | unterminated text block                   |
-| `x: /* nope */`                    | only HTML-style comments exist            |
-| `{a: 1}; {b: 2}` after `}}}`       | content after the document root           |
-| `x: 1; x: 2`                       | duplicate key                             |
-| `n: 01` or `f: 1.`                 | bad number                                |
-| `{{ anything }}`                   | double braces are reserved                |
+| you write                          | why                                       | group |
+|------------------------------------|-------------------------------------------|-------|
+| `mode: auto`                       | bare word value — quote it                | invalid/semantic |
+| `ok: true-ish`                     | bare word with hyphen — quote it          | invalid/semantic |
+| `a: 1 b: 2`                        | missing `;` between fields                | invalid/syntax |
+| `key "value"`                      | missing `:`                               | invalid/syntax |
+| `x: "unterminated`                 | unterminated string                       | invalid/lexical |
+| `x: "a`<br>`b"`                    | quoted strings must close on one line — use `"""` | invalid/syntax |
+| `x: """abc`                        | unterminated text block                   | invalid/lexical |
+| `x: /* nope */`                    | only HTML-style comments exist            | invalid/lexical |
+| `x: "\x"`                         | unknown escape `\x`                       | invalid/lexical |
+| `x: "unterminated` + `<!--`        | unterminated comment                      | invalid/lexical |
+| `{a: 1}; {b: 2}` after `}}}`       | content after the document root           | invalid/syntax |
+| `x: 1; x: 2`                       | duplicate key                             | invalid/semantic |
+| `n: 01` or `f: 1.`                 | bad number (leading zero / empty fraction)| invalid/syntax |
+| `f: 1e` or `n: 1E`                  | bad number (empty exponent)               | invalid/syntax |
+| `{{ anything }}`                   | double braces are reserved                | invalid/syntax |
+| `{ a: 1 }` as root                 | document must use `{{{`                   | invalid/syntax |
+| `a: ["x" "y"]`                    | missing `,` in array                      | invalid/syntax |
 
 ---
 
-## 12. Open questions (v0.2 candidates — not decided)
+## 12. Spec-tests layout (for implementers)
+
+The reference test suite lives in `spec-tests/`:
+
+- `valid/minimal/` — 4 smoke tests (empty doc/object/array, single field)
+- `valid/feature/` — 8 isolated feature tests (numbers, strings, texts, keys, arrays, objects, comments, scalars)
+- `valid/integration/` — 3 combined stress tests (`complex`, `torture`, `mega`)
+- `invalid/lexical|syntax|semantic/` — 18 must-reject tests (5+10+3)
+- `bad/` — legacy flat alias to `invalid/` (kept 1 week for migration)
+
+Each `valid/**/*.hoon` has a paired `valid/**/*.expected` dotted-path dump; `invalid/**/*.hoon` must be rejected. Runners support `bash tests/run-tests.sh --group=valid/feature` etc.; see `spec-tests/README.md`.
+
+---
+
+## 13. Open questions (v0.2 candidates — not decided)
 
 - Embedded subjects: allow `{{{ }}}` documents nested inside documents?
 - `include` / `import` directives between files?
