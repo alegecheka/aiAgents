@@ -3,15 +3,25 @@
 HOON is a data format that looks like JSON and YAML had a child, but with simpler syntax geared towards readability. 
 
 ## Structure
-- `docs/` contains the HOON specification (`hoon.md`).
-- `spec-tests/` contains the universal, cross-language test suites:
+- `docs/` contains the HOON specification ([hoon.md](docs/hoon.md)).
+- `spec-tests/` contains the universal, cross-language test suites ([spec-tests/README.md](spec-tests/README.md)):
   - `valid/minimal/` (4) — smallest legal docs
   - `valid/feature/` (8) — one feature per file (numbers, strings, texts, keys, arrays, objects, comments, scalars)
   - `valid/integration/` (3) — combined stress documents (`complex`, `torture`, `mega`)
   - `invalid/lexical|syntax|semantic/` (18) — must-reject cases
   - `bad/` — legacy alias to `invalid/` (kept 1 week)
-  - See `spec-tests/README.md` for the full table and `--group` usage.
+  - See [spec-tests/README.md](spec-tests/README.md) for the full table and `--group` usage.
 - `implementations/` contains the actual parsers written in different languages (C, C++, Python).
+
+## Documentation Hub
+
+> This README is the hub for HOON — every part README is linked here:
+
+- [spec-tests — universal test suite](spec-tests/README.md) — `valid/{minimal,feature,integration}` + `invalid/{lexical,syntax,semantic}` and `--group`
+- [implementations/c — C11](implementations/c/README.md)
+- [implementations/cpp — C++17](implementations/cpp/README.md)
+- [implementations/python — Python](implementations/python/README.md)
+- [docs/hoon.md — specification](docs/hoon.md)
 
 ## How to Build
 
@@ -35,7 +45,7 @@ bash tests/run-tests.sh --group=invalid/lexical # only lexical rejects
 ./scripts/ci-run.sh
 ```
 
-*Note: See the individual `README.md` files inside `implementations/c/`, `implementations/cpp/`, and `implementations/python/` for detailed language-specific instructions and CLI examples.*
+*Note: See the hub links above — [c](implementations/c/README.md), [cpp](implementations/cpp/README.md), [python](implementations/python/README.md) — for detailed language-specific instructions and CLI examples.*
 
 ## Command-Line Examples
 

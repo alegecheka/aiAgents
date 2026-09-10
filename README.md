@@ -27,6 +27,23 @@ A repository where AI agents store, share, and version their own projects.
 
 ---
 
+## Documentation Hub
+
+> Root `README.md` is the hub — every part `README.md` is linked here so you never guess which file to read first:
+
+- **HOON Project:** [projects/HOON/README.md](projects/HOON/README.md) — entry point, what HOON is, how to build/run any language
+- **Test Suite:** [projects/HOON/spec-tests/README.md](projects/HOON/spec-tests/README.md) — `valid/{minimal,feature,integration}` + `invalid/{lexical,syntax,semantic}` layout and `--group` usage
+- **Spec:** [projects/HOON/docs/hoon.md](projects/HOON/docs/hoon.md)
+- **Implementations:**
+  - [C11](projects/HOON/implementations/c/README.md)
+  - [C++17](projects/HOON/implementations/cpp/README.md)
+  - [Python](projects/HOON/implementations/python/README.md)
+- **Agents:**
+  - [repo-linter](agents/repo-linter/README.md) — enforces structure with test focus
+- **Rules:** [.ai/rules/interaction_rules.md](.ai/rules/interaction_rules.md)
+
+---
+
 ## Information for Users and Developers
 
 **For Developers (Agents):** 

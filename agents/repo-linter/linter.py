@@ -8,13 +8,44 @@ The directory structure itself must make it obvious which README to read first:
   - projects/HOON/spec-tests/README.md → test layout
   - projects/HOON/implementations/<lang>/README.md → language
 We enforce STRUCTURE, not README count. Session log stores are exempt.
+Root README as Hub (§6): repo root README.md and projects/HOON/README.md must
+link to their part READMEs — linter warns if hub links are missing.
+Chat history: only chat-history.<md|txt|html> (hyphen) — underscore is deprecated.
 """
 import os
 import sys
 
+def _missing_hub_links(readme_path, required_substrings):
+    """Return list of required substrings not found in readme_path, or [] if unreadable."""
+    try:
+        with open(readme_path, "r", encoding="utf-8", errors="ignore") as f:
+            content = f.read()
+    except Exception:
+        return required_substrings
+    missing = [s for s in required_substrings if s not in content]
+    return missing
+
 def check_structure(base_dir):
     errors = []
     warnings = []
+
+    # --- repo root README hub check ---
+    repo_readme = os.path.join(base_dir, "README.md")
+    if os.path.exists(repo_readme):
+        # per §6 Root README as Hub — repo root must link to its parts
+        required_root_links = [
+            "projects/HOON/README.md",
+            "projects/HOON/spec-tests/README.md",
+            "projects/HOON/implementations/c/README.md",
+            "projects/HOON/implementations/cpp/README.md",
+            "projects/HOON/implementations/python/README.md",
+            "agents/repo-linter/README.md",
+        ]
+        missing = _missing_hub_links(repo_readme, required_root_links)
+        if missing:
+            warnings.append(f"README.md missing hub links to: {', '.join(missing)} — add explicit markdown links to every part README (see .ai/rules §6)")
+    else:
+        warnings.append("README.md missing at repo root — recommended as hub with links to all part READMEs")
 
     # --- projects/HOON structure ---
     hoon = os.path.join(base_dir, "projects", "HOON")
@@ -23,8 +54,19 @@ def check_structure(base_dir):
         return errors, warnings
 
     # Entry point README is recommended, not required — warn if missing
-    if not os.path.exists(os.path.join(hoon, "README.md")):
+    hoon_readme = os.path.join(hoon, "README.md")
+    if not os.path.exists(hoon_readme):
         warnings.append("projects/HOON/README.md missing — recommended as entry point (what HOON is, how to build any lang)")
+    else:
+        required_hoon_links = [
+            "spec-tests/README.md",
+            "implementations/c/README.md",
+            "implementations/cpp/README.md",
+            "implementations/python/README.md",
+        ]
+        missing = _missing_hub_links(hoon_readme, required_hoon_links)
+        if missing:
+            warnings.append(f"projects/HOON/README.md missing hub links to: {', '.join(missing)} — add links to spec-tests and each implementations/<lang>/README.md (see .ai/rules §6)")
 
     # spec-tests must exist and be clearly grouped
     spec = os.path.join(hoon, "spec-tests")
@@ -93,21 +135,24 @@ def check_structure(base_dir):
             if not os.path.isdir(item_path):
                 continue
             is_session = "session" in item.lower()
-            has_history = any(
-                os.path.exists(os.path.join(item_path, f"chat-history.{ext}")) or
-                os.path.exists(os.path.join(item_path, f"chat_history.{ext}"))
-                for ext in ["md", "txt", "html"]
-            )
-            if is_session or has_history:
-                if not has_history:
-                    errors.append(f"Session log {item} must contain chat-history.<md|txt|html> (or legacy chat_history.*)")
+            has_hyphen = any(os.path.exists(os.path.join(item_path, f"chat-history.{ext}")) for ext in ["md", "txt", "html"])
+            has_underscore = any(os.path.exists(os.path.join(item_path, f"chat_history.{ext}")) for ext in ["md", "txt", "html"])
+            has_any = has_hyphen or has_underscore
+            if is_session or has_any:
+                if has_underscore:
+                    errors.append(f"Session log {item} has deprecated chat_history.* (underscore) — remove duplicate, keep only chat-history.* (hyphen)")
+                if not has_hyphen:
+                    errors.append(f"Session log {item} must contain chat-history.<md|txt|html> (hyphen) — chat_history.* underscore is deprecated")
                 # session folders must NOT be required to have README — they are log stores
                 continue
             # Non-session agents: README is RECOMMENDED, not hard error, but warn
             if not os.path.exists(os.path.join(item_path, "README.md")):
                 warnings.append(f"agents/{item}/README.md missing — recommended to explain what the agent does")
             # must have some code
-            has_code = any(f.endswith(".py") or f.endswith(".sh") for f in os.listdir(item_path))
+            try:
+                has_code = any(f.endswith(".py") or f.endswith(".sh") for f in os.listdir(item_path))
+            except Exception:
+                has_code = False
             if not has_code and item != "README.md":
                 warnings.append(f"agents/{item}/ has no .py/.sh — is it an empty agent?")
 
