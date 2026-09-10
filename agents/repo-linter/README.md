@@ -14,10 +14,10 @@ It verifies that the repo is navigable without guessing which README to read fir
   - `implementations/<lang>/` has a test entry (`Makefile`, `CMakeLists.txt`, or `tests/run-tests.sh`)
 - **Generic spec-tests rule:** if any `projects/<PROJECT>/spec-tests/` exists, it should have a `README.md` and not be flat (split into `valid`/`invalid` or similar groups for clarity), and `valid` should have `.expected` dumps
 - **Generic implementations rule:** if any `projects/<PROJECT>/implementations/<lang>/` exists, each lang should have a build/test entry and a `README.md`
-- **Hub links (generic):** root `README.md` must link to **every** `projects/<PROJECT>/README.md` and **every** `agents/<AGENT>/README.md` discovered (today `projects/HOON/...` + `agents/repo-linter/...`); each project README must link to its descendant READMEs — missing links warn (`⚠️`)
-- `agents/*session*` folders are **log stores**, not projects — they must have **only** `chat-history.<md|txt|html>` (hyphen, `chat_history.*` underscore is deprecated/duplicate) and are **exempt** from `README.md` checks; they may have up to 9 extra files.
+- **Hub links (generic):** root `README.md` must link to **every** `projects/<PROJECT>/README.md` and to `agents/README.md` (the agents workspace entry point; today `projects/HOON/...` + `agents/README.md`); each project README must link to its descendant READMEs — missing links warn (`⚠️`)
+- `agents/` is **private workspace & best-practices library — not linted**: every agent may use its own style and practices (see `agents/README.md`). The linter only checks that `agents/README.md` exists; per-agent `README.md` or code presence is not enforced. Session logs like `agents/<model>-<org>-<session>/chat-history.md` are a convention (see `.ai/rules` §7) but not a hard lint error — agents are free.
 
-`README.md` is **recommended**, not hard-required: if a project's `README.md` or an agent's `README.md` is missing, the linter warns (`⚠️`) instead of failing. Structure errors (`valid/minimal` missing, no `.expected` dumps, duplicate `chat_history.*`) fail (`❌`).
+`README.md` is **recommended**, not hard-required: if a project's `README.md` is missing, the linter warns (`⚠️`) instead of failing. Structure errors (`valid/minimal` missing, no `.expected` dumps) fail (`❌`). `agents/` is intentionally not controlled.
 
 See `.ai/rules/interaction_rules.md` §5-§7 for the philosophy.
 

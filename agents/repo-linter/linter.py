@@ -7,8 +7,9 @@ The directory structure itself must make it obvious which README to read first.
 Works for ANY future project in projects/*, not just HOON — HOON is just the
 current example. Session log stores are exempt.
 Root README as Hub (§6 Generic): repo root README.md links to every
-projects/<PROJECT>/README.md and agents/<AGENT>/README.md; each project README
+projects/<PROJECT>/README.md and to agents/README.md; each project README
 links to its own part READMEs. Linter warns if hub links are missing.
+agents/ is private — no strict linting beyond agents/README.md (see agents/README.md).
 Chat history: only chat-history.<md|txt|html> (hyphen) — underscore is deprecated.
 """
 import os
@@ -27,7 +28,6 @@ def _missing_hub_links(readme_path, required_substrings):
 def _find_descendant_readmes(proj_path, max_depth=2):
     """Find descendant README.md files within proj_path up to max_depth, relative to proj_path."""
     readmes = []
-    proj_root = os.path.abspath(proj_path)
     for root, dirs, files in os.walk(proj_path):
         rel_root = os.path.relpath(root, proj_path)
         if rel_root == ".":
@@ -41,8 +41,6 @@ def _find_descendant_readmes(proj_path, max_depth=2):
             # normalize to posix-like for markdown link check
             rel = os.path.join(rel_root, "README.md").replace(os.sep, "/")
             readmes.append(rel)
-        # also consider docs/*.md like docs/hoon.md? For HOON, docs/hoon.md is part of hub.
-        # We only enforce README.md hubs, but docs/*.md will be checked via repo root hub if needed.
     return sorted(readmes)
 
 def check_structure(base_dir):
@@ -63,24 +61,14 @@ def check_structure(base_dir):
         required_root_links = []
         for proj in sorted(project_dirs):
             required_root_links.append(f"projects/{proj}/README.md")
-        # discover agents with README.md (non-session)
-        agents_root = os.path.join(base_dir, "agents")
-        if os.path.isdir(agents_root):
-            for item in sorted(os.listdir(agents_root)):
-                item_path = os.path.join(agents_root, item)
-                if not os.path.isdir(item_path):
-                    continue
-                is_session = "session" in item.lower()
-                has_hyphen = any(os.path.exists(os.path.join(item_path, f"chat-history.{ext}")) for ext in ["md", "txt", "html"])
-                has_underscore = any(os.path.exists(os.path.join(item_path, f"chat_history.{ext}")) for ext in ["md", "txt", "html"])
-                if is_session or has_hyphen or has_underscore:
-                    continue
-                if os.path.exists(os.path.join(item_path, "README.md")):
-                    required_root_links.append(f"agents/{item}/README.md")
+        # agents is private — only require link to its entry point README.md, not per-agent
+        agents_entry = os.path.join(base_dir, "agents", "README.md")
+        if os.path.exists(agents_entry):
+            required_root_links.append("agents/README.md")
         if required_root_links:
             missing = _missing_hub_links(repo_readme, required_root_links)
             if missing:
-                warnings.append(f"README.md missing hub links to: {', '.join(missing)} — add explicit markdown links to every project/agent README (see .ai/rules §6 Generic)")
+                warnings.append(f"README.md missing hub links to: {', '.join(missing)} — add explicit markdown links to every project and to agents/README.md (see .ai/rules §6 Generic)")
         # For backward compat, also warn if HOON deep links missing when HOON exists (project hub already covers, but keep gentle warning)
         if "HOON" in project_dirs:
             hoon_deep = [
@@ -89,7 +77,6 @@ def check_structure(base_dir):
                 "projects/HOON/implementations/cpp/README.md",
                 "projects/HOON/implementations/python/README.md",
             ]
-            # only require these if the files actually exist (they do today)
             existing_deep = [p for p in hoon_deep if os.path.exists(os.path.join(base_dir, p))]
             if existing_deep:
                 missing_deep = _missing_hub_links(repo_readme, existing_deep)
@@ -97,7 +84,7 @@ def check_structure(base_dir):
                     warnings.append(f"README.md missing HOON deep hub links to: {', '.join(missing_deep)} — repo root as hub should link to key sub-parts (see .ai/rules §6)")
 
     else:
-        warnings.append("README.md missing at repo root — recommended as hub with links to all projects/*/README.md and agents/*/README.md")
+        warnings.append("README.md missing at repo root — recommended as hub with links to all projects/*/README.md and agents/README.md")
 
     if not project_dirs:
         warnings.append("projects/ has no subprojects — add at least one project (e.g., projects/HOON)")
@@ -111,13 +98,9 @@ def check_structure(base_dir):
             continue
         # hub: each project README should link to its descendant READMEs
         descendant = _find_descendant_readmes(proj_path, max_depth=2)
-        # For HOON, also ensure docs/hoon.md is linked if it exists (non-README but part of hub)
         docs_hoon = os.path.join(proj_path, "docs", "hoon.md")
-        # We don't require docs/hoon.md as README, but if it exists we expect a link substring "docs/hoon.md"
         extra_expected = []
         if os.path.exists(docs_hoon):
-            # Check if project README links to docs/hoon.md (common for HOON)
-            # We treat this as recommended, not strictly descendant README, but hub should include it
             extra_expected.append("docs/hoon.md")
         required_proj_links = descendant + extra_expected
         if required_proj_links:
@@ -127,7 +110,6 @@ def check_structure(base_dir):
 
         # --- project-specific structure checks ---
         if proj == "HOON":
-            # HOON detailed checks (preserve previous rigorous validation)
             spec = os.path.join(proj_path, "spec-tests")
             if not os.path.isdir(spec):
                 errors.append("projects/HOON/spec-tests missing — universal tests not found")
@@ -171,7 +153,6 @@ def check_structure(base_dir):
                     if not os.path.exists(os.path.join(lang_path, "README.md")):
                         warnings.append(f"implementations/{lang}/README.md missing — recommended (how to build that lang)")
         else:
-            # Generic checks for non-HOON projects
             spec = os.path.join(proj_path, "spec-tests")
             if os.path.isdir(spec):
                 if not os.path.exists(os.path.join(spec, "README.md")):
@@ -179,7 +160,6 @@ def check_structure(base_dir):
                 subdirs = [d for d in os.listdir(spec) if os.path.isdir(os.path.join(spec, d))]
                 if len(subdirs) < 1:
                     warnings.append(f"projects/{proj}/spec-tests/ looks flat — split into groups (e.g., valid/invalid) for clarity")
-                # if valid exists, check for .expected
                 valid_path = os.path.join(spec, "valid")
                 if os.path.isdir(valid_path):
                     has_expected = False
@@ -194,40 +174,21 @@ def check_structure(base_dir):
                 langs = [d for d in os.listdir(impl_root) if os.path.isdir(os.path.join(impl_root, d))]
                 for lang in langs:
                     lang_path = os.path.join(impl_root, lang)
-                    has_test = any(os.path.exists(os.path.join(lang_path, f)) for f in ["Makefile", "CMakeLists.txt", "pyproject.toml", "tests/run-tests.sh", "Makefile", "build.gradle", "Cargo.toml"])
+                    has_test = any(os.path.exists(os.path.join(lang_path, f)) for f in ["Makefile", "CMakeLists.txt", "pyproject.toml", "tests/run-tests.sh", "build.gradle", "Cargo.toml"])
                     if not has_test:
                         warnings.append(f"projects/{proj}/implementations/{lang}/ has no build/test entry (Makefile/CMakeLists.txt/pyproject.toml) — how to run tests?")
                     if not os.path.exists(os.path.join(lang_path, "README.md")):
                         warnings.append(f"projects/{proj}/implementations/{lang}/README.md missing — recommended (how to build that lang)")
 
-    # --- agents structure (generic) ---
+    # --- agents: private workspace, no strict control ---
+    # Only ensure the workspace has a description; per-agent content (including session logs) is intentionally not linted.
     agents_root = os.path.join(base_dir, "agents")
     if os.path.isdir(agents_root):
-        for item in os.listdir(agents_root):
-            item_path = os.path.join(agents_root, item)
-            if not os.path.isdir(item_path):
-                continue
-            is_session = "session" in item.lower()
-            has_hyphen = any(os.path.exists(os.path.join(item_path, f"chat-history.{ext}")) for ext in ["md", "txt", "html"])
-            has_underscore = any(os.path.exists(os.path.join(item_path, f"chat_history.{ext}")) for ext in ["md", "txt", "html"])
-            has_any = has_hyphen or has_underscore
-            if is_session or has_any:
-                if has_underscore:
-                    errors.append(f"Session log {item} has deprecated chat_history.* (underscore) — remove duplicate, keep only chat-history.* (hyphen)")
-                if not has_hyphen:
-                    errors.append(f"Session log {item} must contain chat-history.<md|txt|html> (hyphen) — chat_history.* underscore is deprecated")
-                # session folders must NOT be required to have README — they are log stores
-                continue
-            # Non-session agents: README is RECOMMENDED, not hard error, but warn
-            if not os.path.exists(os.path.join(item_path, "README.md")):
-                warnings.append(f"agents/{item}/README.md missing — recommended to explain what the agent does")
-            # must have some code
-            try:
-                has_code = any(f.endswith(".py") or f.endswith(".sh") for f in os.listdir(item_path))
-            except Exception:
-                has_code = False
-            if not has_code and item != "README.md":
-                warnings.append(f"agents/{item}/ has no .py/.sh — is it an empty agent?")
+        agents_readme = os.path.join(agents_root, "README.md")
+        if not os.path.exists(agents_readme):
+            warnings.append("agents/README.md missing — add description of what agents/ is and why we use it (private place + best-practices library, human as manager)")
+        # Note: individual agents (repo-linter, future agents, session logs) may use any style; no per-agent README or code checks.
+        # The linter intentionally does not enforce chat-history.* here — see .ai/rules §7 for convention, not enforcement.
 
     return errors, warnings
 

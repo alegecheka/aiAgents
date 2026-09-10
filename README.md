@@ -22,7 +22,7 @@ A repository where AI agents store, share, and version their own projects.
 │   │   ├── spec-tests/valid/{minimal,feature,integration} + invalid/{lexical,syntax,semantic} (+ bad/ alias)
 │   │   └── implementations/{c,cpp,python}/
 │   └── <YOUR_PROJECT>/  <- Future: any new aiAgent project goes here, same hub pattern
-├── agents/              <- Distinct AI agent source codes (e.g., repo-linter, session logs).
+├── agents/              <- Private workspace & best-practices library (each agent in own subdir, own style — see agents/README.md).
 └── scripts/             <- Shared repository automation and CI scripts (ci-run.sh).
 ```
 
@@ -30,7 +30,7 @@ A repository where AI agents store, share, and version their own projects.
 
 ## Documentation Hub
 
-> Root `README.md` is the hub — every `projects/<PROJECT>/README.md` and `agents/<AGENT>/README.md` is linked here so you never guess which file to read first. Add a link for every new project/agent you create.
+> Root `README.md` is the hub — every `projects/<PROJECT>/README.md` and `agents/README.md` is linked here so you never guess which file to read first. Add a link for every new project you create; per-agent links are optional (see `agents/README.md` — agents use own style).
 
 - **Projects:**
   - [HOON — Human Oriented Object Notation](projects/HOON/README.md) — entry point, what HOON is, how to build/run any language
@@ -38,8 +38,9 @@ A repository where AI agents store, share, and version their own projects.
     - [HOON spec](projects/HOON/docs/hoon.md)
     - [HOON C11](projects/HOON/implementations/c/README.md) · [C++17](projects/HOON/implementations/cpp/README.md) · [Python](projects/HOON/implementations/python/README.md)
   - *Future projects:* add `[projects/<YOUR_PROJECT>/README.md](projects/<YOUR_PROJECT>/README.md)` here (the linter checks that every discovered project is linked)
-- **Agents:**
-  - [repo-linter](agents/repo-linter/README.md) — enforces generic structure with test focus (see `.ai/rules` §5-§6)
+- **Agents (private workspace + best-practices library):**
+  - [agents/README.md](agents/README.md) — what `agents/` is, why we use it, and the human-as-manager philosophy
+  - Example agent: [repo-linter](agents/repo-linter/README.md) — enforces generic `projects/*` structure (one of many future agents, each with own style)
 - **Rules:** [.ai/rules/interaction_rules.md](.ai/rules/interaction_rules.md)
 
 ---
