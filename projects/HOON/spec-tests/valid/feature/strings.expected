@@ -1,0 +1,5 @@
+empty: ""
+simple: "hello"
+escapes: "quote:\" backslash:\\ newline:\n tab:\t cr:\r unicode:Aé€"
+utf8: "naïve café — ✓ 🎉"
+mixed: "a\"b\\c"

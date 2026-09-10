@@ -1,0 +1,6 @@
+empty: ""
+simple: "Hello\nWorld"
+indented: "  two spaces kept\n\ttab kept\nline with \"quotes\" and \\ backslashes literal"
+withTriple: "first line\nsecond with \"\"\" literal triple\nthird line"
+singleLine: "inline text"
+unicodeText: "naïve – café ✓\nsecond line with emoji 🎉"

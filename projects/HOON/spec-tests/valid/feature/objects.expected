@@ -1,0 +1,8 @@
+empty: {}
+emptySpaced: {}
+oneField.a: 1
+trailingSemi.x: 1
+trailingSemi.y: 2
+deep.l1.l2.l3.value: "deep"
+withComment.a: 1
+withComment.b: 2
