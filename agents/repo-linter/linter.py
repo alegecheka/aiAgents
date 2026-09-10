@@ -2,14 +2,13 @@
 """
 Repo Linter — enforces project directory structure with focus on test clarification.
 
-New philosophy (per .ai/rules §6): README.md is RECOMMENDED, not hard-required.
-The directory structure itself must make it obvious which README to read first:
-  - projects/HOON/README.md → entry point
-  - projects/HOON/spec-tests/README.md → test layout
-  - projects/HOON/implementations/<lang>/README.md → language
-We enforce STRUCTURE, not README count. Session log stores are exempt.
-Root README as Hub (§6): repo root README.md and projects/HOON/README.md must
-link to their part READMEs — linter warns if hub links are missing.
+Generic philosophy (per .ai/rules §5-§6): README.md is RECOMMENDED, not hard-required.
+The directory structure itself must make it obvious which README to read first.
+Works for ANY future project in projects/*, not just HOON — HOON is just the
+current example. Session log stores are exempt.
+Root README as Hub (§6 Generic): repo root README.md links to every
+projects/<PROJECT>/README.md and agents/<AGENT>/README.md; each project README
+links to its own part READMEs. Linter warns if hub links are missing.
 Chat history: only chat-history.<md|txt|html> (hyphen) — underscore is deprecated.
 """
 import os
@@ -25,109 +24,183 @@ def _missing_hub_links(readme_path, required_substrings):
     missing = [s for s in required_substrings if s not in content]
     return missing
 
+def _find_descendant_readmes(proj_path, max_depth=2):
+    """Find descendant README.md files within proj_path up to max_depth, relative to proj_path."""
+    readmes = []
+    proj_root = os.path.abspath(proj_path)
+    for root, dirs, files in os.walk(proj_path):
+        rel_root = os.path.relpath(root, proj_path)
+        if rel_root == ".":
+            continue
+        depth = rel_root.count(os.sep) + 1  # +1 because rel_root is dir level
+        if depth > max_depth:
+            # prune deeper traversal
+            dirs[:] = []
+            continue
+        if "README.md" in files:
+            # normalize to posix-like for markdown link check
+            rel = os.path.join(rel_root, "README.md").replace(os.sep, "/")
+            readmes.append(rel)
+        # also consider docs/*.md like docs/hoon.md? For HOON, docs/hoon.md is part of hub.
+        # We only enforce README.md hubs, but docs/*.md will be checked via repo root hub if needed.
+    return sorted(readmes)
+
 def check_structure(base_dir):
     errors = []
     warnings = []
 
-    # --- repo root README hub check ---
+    projects_root = os.path.join(base_dir, "projects")
+    project_dirs = []
+    if os.path.isdir(projects_root):
+        project_dirs = [d for d in os.listdir(projects_root) if os.path.isdir(os.path.join(projects_root, d))]
+    else:
+        errors.append("projects/ missing — create at least one project like projects/HOON")
+        project_dirs = []
+
+    # --- repo root README hub check (generic) ---
     repo_readme = os.path.join(base_dir, "README.md")
     if os.path.exists(repo_readme):
-        # per §6 Root README as Hub — repo root must link to its parts
-        required_root_links = [
-            "projects/HOON/README.md",
-            "projects/HOON/spec-tests/README.md",
-            "projects/HOON/implementations/c/README.md",
-            "projects/HOON/implementations/cpp/README.md",
-            "projects/HOON/implementations/python/README.md",
-            "agents/repo-linter/README.md",
-        ]
-        missing = _missing_hub_links(repo_readme, required_root_links)
-        if missing:
-            warnings.append(f"README.md missing hub links to: {', '.join(missing)} — add explicit markdown links to every part README (see .ai/rules §6)")
+        required_root_links = []
+        for proj in sorted(project_dirs):
+            required_root_links.append(f"projects/{proj}/README.md")
+        # discover agents with README.md (non-session)
+        agents_root = os.path.join(base_dir, "agents")
+        if os.path.isdir(agents_root):
+            for item in sorted(os.listdir(agents_root)):
+                item_path = os.path.join(agents_root, item)
+                if not os.path.isdir(item_path):
+                    continue
+                is_session = "session" in item.lower()
+                has_hyphen = any(os.path.exists(os.path.join(item_path, f"chat-history.{ext}")) for ext in ["md", "txt", "html"])
+                has_underscore = any(os.path.exists(os.path.join(item_path, f"chat_history.{ext}")) for ext in ["md", "txt", "html"])
+                if is_session or has_hyphen or has_underscore:
+                    continue
+                if os.path.exists(os.path.join(item_path, "README.md")):
+                    required_root_links.append(f"agents/{item}/README.md")
+        if required_root_links:
+            missing = _missing_hub_links(repo_readme, required_root_links)
+            if missing:
+                warnings.append(f"README.md missing hub links to: {', '.join(missing)} — add explicit markdown links to every project/agent README (see .ai/rules §6 Generic)")
+        # For backward compat, also warn if HOON deep links missing when HOON exists (project hub already covers, but keep gentle warning)
+        if "HOON" in project_dirs:
+            hoon_deep = [
+                "projects/HOON/spec-tests/README.md",
+                "projects/HOON/implementations/c/README.md",
+                "projects/HOON/implementations/cpp/README.md",
+                "projects/HOON/implementations/python/README.md",
+            ]
+            # only require these if the files actually exist (they do today)
+            existing_deep = [p for p in hoon_deep if os.path.exists(os.path.join(base_dir, p))]
+            if existing_deep:
+                missing_deep = _missing_hub_links(repo_readme, existing_deep)
+                if missing_deep:
+                    warnings.append(f"README.md missing HOON deep hub links to: {', '.join(missing_deep)} — repo root as hub should link to key sub-parts (see .ai/rules §6)")
+
     else:
-        warnings.append("README.md missing at repo root — recommended as hub with links to all part READMEs")
+        warnings.append("README.md missing at repo root — recommended as hub with links to all projects/*/README.md and agents/*/README.md")
 
-    # --- projects/HOON structure ---
-    hoon = os.path.join(base_dir, "projects", "HOON")
-    if not os.path.isdir(hoon):
-        errors.append("projects/HOON missing — main project not found")
-        return errors, warnings
+    if not project_dirs:
+        warnings.append("projects/ has no subprojects — add at least one project (e.g., projects/HOON)")
 
-    # Entry point README is recommended, not required — warn if missing
-    hoon_readme = os.path.join(hoon, "README.md")
-    if not os.path.exists(hoon_readme):
-        warnings.append("projects/HOON/README.md missing — recommended as entry point (what HOON is, how to build any lang)")
-    else:
-        required_hoon_links = [
-            "spec-tests/README.md",
-            "implementations/c/README.md",
-            "implementations/cpp/README.md",
-            "implementations/python/README.md",
-        ]
-        missing = _missing_hub_links(hoon_readme, required_hoon_links)
-        if missing:
-            warnings.append(f"projects/HOON/README.md missing hub links to: {', '.join(missing)} — add links to spec-tests and each implementations/<lang>/README.md (see .ai/rules §6)")
+    # --- per-project generic checks ---
+    for proj in sorted(project_dirs):
+        proj_path = os.path.join(projects_root, proj)
+        proj_readme = os.path.join(proj_path, "README.md")
+        if not os.path.exists(proj_readme):
+            warnings.append(f"projects/{proj}/README.md missing — recommended as entry point (what {proj} is, how to build)")
+            continue
+        # hub: each project README should link to its descendant READMEs
+        descendant = _find_descendant_readmes(proj_path, max_depth=2)
+        # For HOON, also ensure docs/hoon.md is linked if it exists (non-README but part of hub)
+        docs_hoon = os.path.join(proj_path, "docs", "hoon.md")
+        # We don't require docs/hoon.md as README, but if it exists we expect a link substring "docs/hoon.md"
+        extra_expected = []
+        if os.path.exists(docs_hoon):
+            # Check if project README links to docs/hoon.md (common for HOON)
+            # We treat this as recommended, not strictly descendant README, but hub should include it
+            extra_expected.append("docs/hoon.md")
+        required_proj_links = descendant + extra_expected
+        if required_proj_links:
+            missing = _missing_hub_links(proj_readme, required_proj_links)
+            if missing:
+                warnings.append(f"projects/{proj}/README.md missing hub links to: {', '.join(missing)} — add links to every part README inside that project (see .ai/rules §6)")
 
-    # spec-tests must exist and be clearly grouped
-    spec = os.path.join(hoon, "spec-tests")
-    if not os.path.isdir(spec):
-        errors.append("projects/HOON/spec-tests missing — universal tests not found")
-    else:
-        # Must have valid/ and invalid/ (not just flat bad/)
-        for d in ["valid", "invalid"]:
-            if not os.path.isdir(os.path.join(spec, d)):
-                errors.append(f"spec-tests/{d}/ missing — run 'valid/{{minimal,feature,integration}} + invalid/{{lexical,syntax,semantic}}' grouping")
+        # --- project-specific structure checks ---
+        if proj == "HOON":
+            # HOON detailed checks (preserve previous rigorous validation)
+            spec = os.path.join(proj_path, "spec-tests")
+            if not os.path.isdir(spec):
+                errors.append("projects/HOON/spec-tests missing — universal tests not found")
+            else:
+                for d in ["valid", "invalid"]:
+                    if not os.path.isdir(os.path.join(spec, d)):
+                        errors.append(f"spec-tests/{d}/ missing — run 'valid/{{minimal,feature,integration}} + invalid/{{lexical,syntax,semantic}}' grouping")
+                for sub in ["minimal", "feature", "integration"]:
+                    p = os.path.join(spec, "valid", sub)
+                    if not os.path.isdir(p):
+                        errors.append(f"spec-tests/valid/{sub}/ missing — add minimal/feature/integration grouping")
+                    elif not any(f.endswith(".hoon") for f in os.listdir(p)):
+                        errors.append(f"spec-tests/valid/{sub}/ has no .hoon files — add at least one golden")
+                for sub in ["lexical", "syntax", "semantic"]:
+                    p = os.path.join(spec, "invalid", sub)
+                    if not os.path.isdir(p):
+                        errors.append(f"spec-tests/invalid/{sub}/ missing — categorize bad tests as lexical/syntax/semantic")
+                    elif not any(f.endswith(".hoon") for f in os.listdir(p)):
+                        errors.append(f"spec-tests/invalid/{sub}/ has no .hoon files")
+                if not os.path.exists(os.path.join(spec, "README.md")):
+                    warnings.append("spec-tests/README.md missing — recommended to explain valid/ vs invalid and --group usage")
+                valid_expected = []
+                for root, _, files in os.walk(os.path.join(spec, "valid")):
+                    valid_expected.extend([f for f in files if f.endswith(".expected")])
+                if not valid_expected:
+                    errors.append("spec-tests/valid has no .expected dumps — each valid/*.hoon needs paired .expected")
+                if os.path.isdir(os.path.join(spec, "bad")) and not os.path.isdir(os.path.join(spec, "invalid")):
+                    warnings.append("spec-tests/bad/ exists but spec-tests/invalid/ missing — migrate to invalid/{lexical,syntax,semantic}")
+            impl_root = os.path.join(proj_path, "implementations")
+            if not os.path.isdir(impl_root):
+                errors.append("projects/HOON/implementations/ missing")
+            else:
+                langs = [d for d in os.listdir(impl_root) if os.path.isdir(os.path.join(impl_root, d))]
+                if not langs:
+                    errors.append("implementations/ has no language subfolders (e.g., c, cpp, python)")
+                for lang in langs:
+                    lang_path = os.path.join(impl_root, lang)
+                    has_test = any(os.path.exists(os.path.join(lang_path, f)) for f in ["Makefile", "CMakeLists.txt", "pyproject.toml", "tests/run-tests.sh"])
+                    if not has_test:
+                        warnings.append(f"implementations/{lang}/ has no Makefile/CMakeLists.txt/pyproject.toml — how to run tests?")
+                    if not os.path.exists(os.path.join(lang_path, "README.md")):
+                        warnings.append(f"implementations/{lang}/README.md missing — recommended (how to build that lang)")
+        else:
+            # Generic checks for non-HOON projects
+            spec = os.path.join(proj_path, "spec-tests")
+            if os.path.isdir(spec):
+                if not os.path.exists(os.path.join(spec, "README.md")):
+                    warnings.append(f"projects/{proj}/spec-tests/README.md missing — recommended to explain test layout")
+                subdirs = [d for d in os.listdir(spec) if os.path.isdir(os.path.join(spec, d))]
+                if len(subdirs) < 1:
+                    warnings.append(f"projects/{proj}/spec-tests/ looks flat — split into groups (e.g., valid/invalid) for clarity")
+                # if valid exists, check for .expected
+                valid_path = os.path.join(spec, "valid")
+                if os.path.isdir(valid_path):
+                    has_expected = False
+                    for _, _, files in os.walk(valid_path):
+                        if any(f.endswith(".expected") for f in files):
+                            has_expected = True
+                            break
+                    if not has_expected:
+                        warnings.append(f"projects/{proj}/spec-tests/valid has no .expected dumps — add expected outputs for valid tests")
+            impl_root = os.path.join(proj_path, "implementations")
+            if os.path.isdir(impl_root):
+                langs = [d for d in os.listdir(impl_root) if os.path.isdir(os.path.join(impl_root, d))]
+                for lang in langs:
+                    lang_path = os.path.join(impl_root, lang)
+                    has_test = any(os.path.exists(os.path.join(lang_path, f)) for f in ["Makefile", "CMakeLists.txt", "pyproject.toml", "tests/run-tests.sh", "Makefile", "build.gradle", "Cargo.toml"])
+                    if not has_test:
+                        warnings.append(f"projects/{proj}/implementations/{lang}/ has no build/test entry (Makefile/CMakeLists.txt/pyproject.toml) — how to run tests?")
+                    if not os.path.exists(os.path.join(lang_path, "README.md")):
+                        warnings.append(f"projects/{proj}/implementations/{lang}/README.md missing — recommended (how to build that lang)")
 
-        # valid sub-groups
-        for sub in ["minimal", "feature", "integration"]:
-            p = os.path.join(spec, "valid", sub)
-            if not os.path.isdir(p):
-                errors.append(f"spec-tests/valid/{sub}/ missing — add minimal/feature/integration grouping")
-            elif not any(f.endswith(".hoon") for f in os.listdir(p)):
-                errors.append(f"spec-tests/valid/{sub}/ has no .hoon files — add at least one golden")
-
-        # invalid sub-groups
-        for sub in ["lexical", "syntax", "semantic"]:
-            p = os.path.join(spec, "invalid", sub)
-            if not os.path.isdir(p):
-                errors.append(f"spec-tests/invalid/{sub}/ missing — categorize bad tests as lexical/syntax/semantic")
-            elif not any(f.endswith(".hoon") for f in os.listdir(p)):
-                errors.append(f"spec-tests/invalid/{sub}/ has no .hoon files")
-
-        # spec-tests/README.md is the test-clarification entry point — recommended
-        if not os.path.exists(os.path.join(spec, "README.md")):
-            warnings.append("spec-tests/README.md missing — recommended to explain valid/ vs invalid and --group usage")
-
-        # valid must have .expected dumps
-        valid_expected = []
-        for root, _, files in os.walk(os.path.join(spec, "valid")):
-            valid_expected.extend([f for f in files if f.endswith(".expected")])
-        if not valid_expected:
-            errors.append("spec-tests/valid has no .expected dumps — each valid/*.hoon needs paired .expected")
-
-        # legacy bad/ is allowed as alias, but invalid/ is the source of truth
-        if os.path.isdir(os.path.join(spec, "bad")) and not os.path.isdir(os.path.join(spec, "invalid")):
-            warnings.append("spec-tests/bad/ exists but spec-tests/invalid/ missing — migrate to invalid/{lexical,syntax,semantic}")
-
-    # implementations
-    impl_root = os.path.join(hoon, "implementations")
-    if not os.path.isdir(impl_root):
-        errors.append("projects/HOON/implementations/ missing")
-    else:
-        langs = [d for d in os.listdir(impl_root) if os.path.isdir(os.path.join(impl_root, d))]
-        if not langs:
-            errors.append("implementations/ has no language subfolders (e.g., c, cpp, python)")
-        for lang in langs:
-            lang_path = os.path.join(impl_root, lang)
-            # each lang should have a way to test — Makefile or CMakeLists.txt or pyproject.toml
-            has_test = any(os.path.exists(os.path.join(lang_path, f)) for f in ["Makefile", "CMakeLists.txt", "pyproject.toml", "tests/run-tests.sh"])
-            if not has_test:
-                warnings.append(f"implementations/{lang}/ has no Makefile/CMakeLists.txt/pyproject.toml — how to run tests?")
-            # README is recommended per lang, not required
-            if not os.path.exists(os.path.join(lang_path, "README.md")):
-                warnings.append(f"implementations/{lang}/README.md missing — recommended (how to build that lang)")
-
-    # --- agents structure ---
+    # --- agents structure (generic) ---
     agents_root = os.path.join(base_dir, "agents")
     if os.path.isdir(agents_root):
         for item in os.listdir(agents_root):

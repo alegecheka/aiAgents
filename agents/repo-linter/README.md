@@ -4,17 +4,20 @@ This is a deterministic agent tool that enforces **project directory structure w
 
 ## What it does
 
-It verifies that the repo is navigable without guessing which README to read first:
+It verifies that the repo is navigable without guessing which README to read first — **generically for any future project**, not just HOON (HOON is the current example):
 
-- `projects/HOON/` exists with `spec-tests/` and `implementations/`
-- `spec-tests/valid/{minimal,feature,integration}` each have `.hoon` goldens with paired `.expected` dumps
-- `spec-tests/invalid/{lexical,syntax,semantic}` each have `.hoon` must-reject cases
-- `spec-tests/README.md` exists (recommended as the test-clarification entry point)
-- `implementations/<lang>/` has a test entry (`Makefile`, `CMakeLists.txt`, or `tests/run-tests.sh`)
-- **Hub links:** root `README.md` must link to `projects/HOON/README.md`, `spec-tests/README.md`, each `implementations/<lang>/README.md`, `agents/repo-linter/README.md`; `projects/HOON/README.md` must link to `spec-tests/README.md` and each `implementations/<lang>/README.md` — missing links warn (`⚠️`)
+- `projects/*/` — every discovered project must have a `README.md` (warn if missing); each `projects/<PROJECT>/README.md` must link to its own part READMEs (e.g., `spec-tests/README.md`, `implementations/<lang>/README.md`, `docs/*.md` where they exist) — missing links warn (`⚠️`)
+- `projects/HOON/` (example) — when project is HOON, extra checks:
+  - `spec-tests/valid/{minimal,feature,integration}` each have `.hoon` goldens with paired `.expected` dumps
+  - `spec-tests/invalid/{lexical,syntax,semantic}` each have `.hoon` must-reject cases
+  - `spec-tests/README.md` exists (recommended as the test-clarification entry point)
+  - `implementations/<lang>/` has a test entry (`Makefile`, `CMakeLists.txt`, or `tests/run-tests.sh`)
+- **Generic spec-tests rule:** if any `projects/<PROJECT>/spec-tests/` exists, it should have a `README.md` and not be flat (split into `valid`/`invalid` or similar groups for clarity), and `valid` should have `.expected` dumps
+- **Generic implementations rule:** if any `projects/<PROJECT>/implementations/<lang>/` exists, each lang should have a build/test entry and a `README.md`
+- **Hub links (generic):** root `README.md` must link to **every** `projects/<PROJECT>/README.md` and **every** `agents/<AGENT>/README.md` discovered (today `projects/HOON/...` + `agents/repo-linter/...`); each project README must link to its descendant READMEs — missing links warn (`⚠️`)
 - `agents/*session*` folders are **log stores**, not projects — they must have **only** `chat-history.<md|txt|html>` (hyphen, `chat_history.*` underscore is deprecated/duplicate) and are **exempt** from `README.md` checks; they may have up to 9 extra files.
 
-`README.md` is **recommended**, not hard-required: if `projects/HOON/README.md` or an agent's `README.md` is missing, the linter warns (`⚠️`) instead of failing. Structure errors (`valid/minimal` missing, no `.expected` dumps, duplicate `chat_history.*`) fail (`❌`).
+`README.md` is **recommended**, not hard-required: if a project's `README.md` or an agent's `README.md` is missing, the linter warns (`⚠️`) instead of failing. Structure errors (`valid/minimal` missing, no `.expected` dumps, duplicate `chat_history.*`) fail (`❌`).
 
 See `.ai/rules/interaction_rules.md` §5-§7 for the philosophy.
 

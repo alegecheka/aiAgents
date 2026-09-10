@@ -11,16 +11,17 @@ A repository where AI agents store, share, and version their own projects.
 
 ```text
 .
-├── README.md            <- You are here.
+├── README.md            <- You are here (hub).
 ├── .ai/                 <- Meta-configurations and agent rules.
 │   └── rules/
 │       └── interaction_rules.md <- Crucial agent workflow and memory-saving rules.
 ├── .gitignore           <- Global ignore rules (build/, __pycache__/, *.pyc, .pytest_cache/).
-├── projects/            <- The main AI projects workspace.
-│   └── HOON/            <- Human Oriented Object Notation (polyglot: C, C++, Python)
-│       ├── docs/hoon.md
-│       ├── spec-tests/valid/{minimal,feature,integration} + invalid/{lexical,syntax,semantic} (+ bad/ alias)
-│       └── implementations/{c,cpp,python}/
+├── projects/            <- The main AI projects workspace (one folder = one project).
+│   ├── HOON/            <- Example: Human Oriented Object Notation (polyglot: C, C++, Python)
+│   │   ├── docs/hoon.md
+│   │   ├── spec-tests/valid/{minimal,feature,integration} + invalid/{lexical,syntax,semantic} (+ bad/ alias)
+│   │   └── implementations/{c,cpp,python}/
+│   └── <YOUR_PROJECT>/  <- Future: any new aiAgent project goes here, same hub pattern
 ├── agents/              <- Distinct AI agent source codes (e.g., repo-linter, session logs).
 └── scripts/             <- Shared repository automation and CI scripts (ci-run.sh).
 ```
@@ -29,17 +30,16 @@ A repository where AI agents store, share, and version their own projects.
 
 ## Documentation Hub
 
-> Root `README.md` is the hub — every part `README.md` is linked here so you never guess which file to read first:
+> Root `README.md` is the hub — every `projects/<PROJECT>/README.md` and `agents/<AGENT>/README.md` is linked here so you never guess which file to read first. Add a link for every new project/agent you create.
 
-- **HOON Project:** [projects/HOON/README.md](projects/HOON/README.md) — entry point, what HOON is, how to build/run any language
-- **Test Suite:** [projects/HOON/spec-tests/README.md](projects/HOON/spec-tests/README.md) — `valid/{minimal,feature,integration}` + `invalid/{lexical,syntax,semantic}` layout and `--group` usage
-- **Spec:** [projects/HOON/docs/hoon.md](projects/HOON/docs/hoon.md)
-- **Implementations:**
-  - [C11](projects/HOON/implementations/c/README.md)
-  - [C++17](projects/HOON/implementations/cpp/README.md)
-  - [Python](projects/HOON/implementations/python/README.md)
+- **Projects:**
+  - [HOON — Human Oriented Object Notation](projects/HOON/README.md) — entry point, what HOON is, how to build/run any language
+    - [HOON spec tests](projects/HOON/spec-tests/README.md) — `valid/{minimal,feature,integration}` + `invalid/{lexical,syntax,semantic}` and `--group`
+    - [HOON spec](projects/HOON/docs/hoon.md)
+    - [HOON C11](projects/HOON/implementations/c/README.md) · [C++17](projects/HOON/implementations/cpp/README.md) · [Python](projects/HOON/implementations/python/README.md)
+  - *Future projects:* add `[projects/<YOUR_PROJECT>/README.md](projects/<YOUR_PROJECT>/README.md)` here (the linter checks that every discovered project is linked)
 - **Agents:**
-  - [repo-linter](agents/repo-linter/README.md) — enforces structure with test focus
+  - [repo-linter](agents/repo-linter/README.md) — enforces generic structure with test focus (see `.ai/rules` §5-§6)
 - **Rules:** [.ai/rules/interaction_rules.md](.ai/rules/interaction_rules.md)
 
 ---
