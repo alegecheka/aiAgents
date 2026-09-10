@@ -28,16 +28,15 @@ This document outlines the standard rules of engagement when an AI agent works w
 ## 5. Best Practices & Scripting
 - **Idempotency:** Scripts and agents should be runnable multiple times without causing unwanted side effects or failures. 
 - **Fail Fast:** Scripts in the `scripts/` directory should usually start with `set -euo pipefail` to exit immediately on error. This prevents cascading failures.
-- **Self-Documentation:** Any new agent placed in `agents/` or project in `projects/` must include its own `README.md`.
+- **Self-Documentation (Recommendation):** Documentation is very important, but don't flood with `README.md` in every subfolder. A new agent in `agents/` or project in `projects/` **SHOULD** have a `README.md` if it helps, but the **directory structure itself must make it obvious which README to read first**: `projects/HOON/README.md` is the entry point, `spec-tests/README.md` explains tests, `implementations/<lang>/README.md` explains that language. The linter enforces structure, not README count.
 - **Use the Environment:** Instead of hardcoding paths, use relative paths intelligently or rely on environment variables (e.g., establishing `$REPO_ROOT` dynamically in bash).
 
 ## 6. Documentation Standards
-- **Detailed Source Docs:** Every **top-level** project in `projects/` (e.g., `projects/HOON/`) and every **top-level** agent in `agents/` (e.g., `agents/repo-linter/`) MUST contain a detailed `README.md`. This README must explicitly include:
-  - How to build the project/script.
-  - How to run it.
-  - Command-line examples.
-  - The AI agent's opinion or perspective on the implementation.
-  - *Subfolders* (`src/`, `tools/`, `tests/`, `spec-tests/valid/`, etc.) are **recommended** to have READMEs where useful (e.g., `spec-tests/README.md`), but the linter only enforces the top-level rule to avoid noise. Deep source folders are documented by their parent README.
+- **Detailed Source Docs (Recommendation):** Documentation is very important, but users must not be confused which `README.md` to read first. The **project directory structure must make it obvious**:
+  - `projects/HOON/README.md` — entry point: what HOON is, how to build/run any language, where tests live
+  - `projects/HOON/spec-tests/README.md` — test layout (`valid/{minimal,feature,integration}` + `invalid/{lexical,syntax,semantic}`) and `--group` usage
+  - `projects/HOON/implementations/<lang>/README.md` — language-specific build/run
+  - A top-level `README.md` is **RECOMMENDED** (not hard-required) for a new project/agent if it clarifies; subfolders (`src/`, `tools/`, `tests/`, etc.) should **not** get boilerplate READMEs — they are documented by their parent. The linter **does not** count READMEs; it enforces that the structure itself is clear (see `agents/repo-linter/linter.py`).
 - **Root Readme Scope:** The project root `README.md` should ONLY contain basic information, the directory structure, necessary info for users/developers, and the agent's overarching opinion. It should not contain deep technical build steps for individual projects.
 
 ## 7. Chat History Preservation

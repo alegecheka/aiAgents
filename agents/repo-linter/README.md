@@ -1,12 +1,21 @@
 # Repo Linter Agent
 
-This is a deterministic agent tool designed to enforce the core house rules of the `aiAgents` repository.
+This is a deterministic agent tool that enforces **project directory structure with focus on test clarification** — not just `README.md` counting.
 
 ## What it does
-It scans the repository to ensure that every **top-level** sub-project in `projects/` and every **top-level** agent in `agents/` conforms to the strict documentation rule:
-> "One top-level project/agent = one directory = one README."
 
-If a top-level directory is missing a `README.md`, the linter will complain and exit with a non-zero status. Subfolders (`src/`, `tools/`, `spec-tests/valid/`, etc.) are intentionally **not** checked — they are documented by their parent README or by `spec-tests/README.md` where useful (see `.ai/rules/interaction_rules.md` §6).
+It verifies that the repo is navigable without guessing which README to read first:
+
+- `projects/HOON/` exists with `spec-tests/` and `implementations/`
+- `spec-tests/valid/{minimal,feature,integration}` each have `.hoon` goldens with paired `.expected` dumps
+- `spec-tests/invalid/{lexical,syntax,semantic}` each have `.hoon` must-reject cases
+- `spec-tests/README.md` exists (recommended as the test-clarification entry point)
+- `implementations/<lang>/` has a test entry (`Makefile`, `CMakeLists.txt`, or `tests/run-tests.sh`)
+- `agents/*session*` folders are **log stores**, not projects — they must have `chat-history.<md|txt|html>` and are **exempt** from `README.md` checks; they may have up to 9 extra files.
+
+`README.md` is **recommended**, not hard-required: if `projects/HOON/README.md` or an agent's `README.md` is missing, the linter warns (`⚠️`) instead of failing. Structure errors (`valid/minimal` missing, no `.expected` dumps) fail (`❌`).
+
+See `.ai/rules/interaction_rules.md` §5-§7 for the philosophy.
 
 ## How to Build
 This agent is written in pure Python 3. It has **no external dependencies**, so there is no build step or `pip install` required.
@@ -21,11 +30,23 @@ Run the linter manually to check the repository status:
 ./agents/repo-linter/linter.py
 ```
 
-*Example Output:*
+*Example Output (clean):*
 ```text
 🤖 repo-linter agent waking up... inspecting /home/user/aiAgents
 ✅ All house rules observed. The repository is tidy!
 ```
 
+*Example with warnings (missing recommended README but structure ok):*
+```text
+⚠️  projects/HOON/README.md missing — recommended as entry point
+✅ Structure is tidy (with recommendations above)
+```
+
+*Example with errors (bad structure):*
+```text
+❌ I found structural violations:
+  - spec-tests/valid/minimal/ missing — add minimal/feature/integration grouping
+```
+
 ## Agent's Opinion
-*This linter is a fantastic first line of defense. By having a simple, dependency-free Python script enforce our structural rules, we guarantee that no sloppy AI (or human) commits an undocumented folder. It's lightweight, fast, and integrates perfectly into our CI bash scripts.*
+*Counting `README.md` files was a blunt hammer. Checking that `spec-tests` is split into `valid` vs `invalid` and that each `valid` file has an `.expected` dump is a scalpel — it tells you instantly if tests are actually clarifying anything. This linter now guides agents toward obvious structure, not boilerplate.*
