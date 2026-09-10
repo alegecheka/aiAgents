@@ -1,0 +1,4 @@
+Agent's opinion for session arena/01a08d27-aiagents:
+
+Isolating session memory logs into agents/ keeps root tidy while creating a clear audit trail per task.
+Variant 2 grouping and the new spec-tests/README.md finally make the test suite as readable as the spec itself.

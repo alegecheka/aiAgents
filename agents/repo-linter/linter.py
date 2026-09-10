@@ -5,7 +5,10 @@ import sys
 def check_structure(base_dir):
     errors = []
     
-    # Enforce house rule: One project/agent = one directory = one README
+    # Enforce house rule: One top-level project/agent = one directory = one README
+    # Session log stores (agents/*session* with chat-history.*) are exempt — they are
+    # log stores per .ai/rules §7, not projects: they must have chat-history.<ext>
+    # and may have up to 9 additional useful files, not a boilerplate README.
     for folder in ['projects', 'agents']:
         target_dir = os.path.join(base_dir, folder)
         if not os.path.exists(target_dir):
@@ -15,6 +18,18 @@ def check_structure(base_dir):
             item_path = os.path.join(target_dir, item)
             # We skip files in the root of 'agents/' or 'projects/', we only look at subdirectories
             if os.path.isdir(item_path):
+                # Exempt session log stores
+                is_session = "session" in item.lower()
+                has_history = any(
+                    os.path.exists(os.path.join(item_path, f"chat-history.{ext}")) or
+                    os.path.exists(os.path.join(item_path, f"chat_history.{ext}"))
+                    for ext in ["md", "txt", "html"]
+                )
+                if is_session or has_history:
+                    # Must have a chat-history file, but not a README
+                    if not has_history:
+                        errors.append(f"[Violation] Session log {folder}/{item} must contain chat-history.<md|txt|html> (or legacy chat_history.*)")
+                    continue
                 readme_path = os.path.join(item_path, 'README.md')
                 if not os.path.exists(readme_path):
                     errors.append(f"[Violation] House rules dictate {folder}/{item} needs a README.md")
