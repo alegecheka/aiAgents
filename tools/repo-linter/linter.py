@@ -7,10 +7,12 @@ The directory structure itself must make it obvious which README to read first.
 Works for ANY future project in projects/*, not just HOON — HOON is just the
 current example. Session log stores are exempt.
 Root README as Hub (§6 Generic): repo root README.md links to every
-projects/<PROJECT>/README.md and to agents/README.md; each project README
-links to its own part READMEs. Linter warns if hub links are missing.
-agents/ is private — no strict linting beyond agents/README.md (see agents/README.md).
-Chat history: only chat-history.<md|txt|html> (hyphen) — underscore is deprecated.
+projects/<PROJECT>/README.md, to agents/README.md and to tools/README.md
+(and tools/repo-linter); each project README links to its own part READMEs.
+Linter warns if hub links are missing. agents/ is private — no strict linting
+beyond agents/README.md (see agents/README.md). tools/ is shared (formerly
+scripts/). Chat history: only chat-history.<md|txt|html> (hyphen) — underscore
+is deprecated.
 """
 import os
 import sys
@@ -65,10 +67,17 @@ def check_structure(base_dir):
         agents_entry = os.path.join(base_dir, "agents", "README.md")
         if os.path.exists(agents_entry):
             required_root_links.append("agents/README.md")
+        # tools is shared (formerly scripts) — require links to its entry and key tools
+        tools_entry = os.path.join(base_dir, "tools", "README.md")
+        if os.path.exists(tools_entry):
+            required_root_links.append("tools/README.md")
+        tools_linter = os.path.join(base_dir, "tools", "repo-linter", "README.md")
+        if os.path.exists(tools_linter):
+            required_root_links.append("tools/repo-linter/README.md")
         if required_root_links:
             missing = _missing_hub_links(repo_readme, required_root_links)
             if missing:
-                warnings.append(f"README.md missing hub links to: {', '.join(missing)} — add explicit markdown links to every project and to agents/README.md (see .ai/rules §6 Generic)")
+                warnings.append(f"README.md missing hub links to: {', '.join(missing)} — add explicit markdown links to every project, agents/README.md and tools/README.md (see .ai/rules §6 Generic)")
         # For backward compat, also warn if HOON deep links missing when HOON exists (project hub already covers, but keep gentle warning)
         if "HOON" in project_dirs:
             hoon_deep = [
@@ -84,7 +93,7 @@ def check_structure(base_dir):
                     warnings.append(f"README.md missing HOON deep hub links to: {', '.join(missing_deep)} — repo root as hub should link to key sub-parts (see .ai/rules §6)")
 
     else:
-        warnings.append("README.md missing at repo root — recommended as hub with links to all projects/*/README.md and agents/README.md")
+        warnings.append("README.md missing at repo root — recommended as hub with links to all projects/*/README.md, agents/README.md and tools/README.md")
 
     if not project_dirs:
         warnings.append("projects/ has no subprojects — add at least one project (e.g., projects/HOON)")
@@ -194,7 +203,7 @@ def check_structure(base_dir):
 
 if __name__ == "__main__":
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-    print(f"🤖 repo-linter agent waking up... inspecting {repo_root}")
+    print(f"🤖 repo-linter (tools) waking up... inspecting {repo_root}")
     
     errors, warnings = check_structure(repo_root)
     

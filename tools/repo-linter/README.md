@@ -31,7 +31,7 @@ Ensure you have Python 3 installed on your system. You can execute the linter di
 
 Run the linter manually to check the repository status:
 ```bash
-./agents/repo-linter/linter.py
+./tools/repo-linter/linter.py
 ```
 
 *Example Output (clean):*

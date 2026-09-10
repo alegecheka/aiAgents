@@ -1,19 +1,23 @@
-# Automation Scripts
+# Tools — Shared Automation (formerly `scripts/`)
 
-This folder contains shared repository automation and Continuous Integration (CI) scripts.
+This folder contains shared repository automation and linting tools.
+`tools/` is just a better name for the former `scripts/` — same purpose, clearer intent.
+
+* [`ci-run.sh`](ci-run.sh) — CI orchestration (linter + all implementations)
+* [`repo-linter/`](repo-linter/README.md) — deterministic structure linter for `projects/*` (moved from `agents/repo-linter/` — `agents/` is private, `tools/` is shared)
 
 ## How to Build
-These are pure Bash scripts. No compilation or building is required. Ensure they have executable permissions (`chmod +x scripts/*.sh`).
+These are pure Bash/Python tools. No compilation is required. Ensure they have executable permissions (`chmod +x tools/*.sh` and `chmod +x tools/repo-linter/linter.py`).
 
 ## How to Run
 Scripts should be executed from the root of the repository so they can dynamically resolve `$REPO_ROOT` and interact with all subdirectories properly.
 
 ## Command-Line Examples
 
-Run the complete CI orchestration suite (which triggers linters and polyglot tests):
+Run the complete CI orchestration suite (which triggers the linter and polyglot tests):
 
 ```bash
-./scripts/ci-run.sh
+./tools/ci-run.sh
 ```
 
 Run a single implementation's grouped tests directly:

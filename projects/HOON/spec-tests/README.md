@@ -65,7 +65,7 @@ bash tests/run-tests.sh --group=bad                  # alias → invalid (18)
 From repo root, validate all languages at once:
 
 ```bash
-./scripts/ci-run.sh
+./tools/ci-run.sh
 ```
 
 Each parser dumps to dotted paths (`a.b[0]: "val"`) and `diff -u` compares to `.expected`. All three implementations must be byte-identical.

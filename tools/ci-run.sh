@@ -9,9 +9,9 @@ echo "🤖 Starting CI orchestration script..."
 echo "======================================"
 
 echo ""
-echo "==> 1. Running repo-linter agent..."
-if ! "$REPO_ROOT/agents/repo-linter/linter.py"; then
-    echo "❌ repo-linter agent failed! Please fix the errors above."
+echo "==> 1. Running repo-linter (tools/)..."
+if ! "$REPO_ROOT/tools/repo-linter/linter.py"; then
+    echo "❌ repo-linter failed! Please fix the errors above."
     exit 1
 fi
 

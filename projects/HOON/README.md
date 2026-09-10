@@ -42,7 +42,7 @@ bash tests/run-tests.sh --group=valid/feature   # only feature goldens
 bash tests/run-tests.sh --group=invalid/lexical # only lexical rejects
 
 # All languages at once (from repo root)
-./scripts/ci-run.sh
+./tools/ci-run.sh
 ```
 
 *Note: See the hub links above — [c](implementations/c/README.md), [cpp](implementations/cpp/README.md), [python](implementations/python/README.md) — for detailed language-specific instructions and CLI examples.*
@@ -61,7 +61,7 @@ Run the universal test suite across ALL implementations at once from the root:
 
 ```bash
 # Run from the aiAgents root directory
-./scripts/ci-run.sh
+./tools/ci-run.sh
 ```
 
 ## Agent's Opinion
