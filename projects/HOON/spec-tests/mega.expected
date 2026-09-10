@@ -1,0 +1,91 @@
+outpost.id: "OP-7"
+outpost.name: "Galactic Outpost Seven"
+outpost.version: 42
+outpost.coordinates.galaxy: "Andromeda"
+outpost.coordinates.system: "Kepler-442"
+outpost.coordinates.position.x: 12345.7
+outpost.coordinates.position.y: -9876.54
+outpost.coordinates.position.z: 0
+outpost.coordinates.hexSector: 43981
+outpost.coordinates.negHex: -16
+outpost.crew[0].id: 1
+outpost.crew[0].name: "Ada Lovelace"
+outpost.crew[0].role: "commander"
+outpost.crew[0].active: true
+outpost.crew[0].clearance: 255
+outpost.crew[0].bio: "Ada leads the outpost with precision.\nEx-Military, 12 years experience.\nSpeaks \"English\" and \"Русский\" fluently."
+outpost.crew[1].id: 2
+outpost.crew[1].name: "Ken Thompson"
+outpost.crew[1].role: "engineer"
+outpost.crew[1].active: true
+outpost.crew[1].clearance: 127
+outpost.crew[1].bio: "naïve café — systems expert"
+outpost.crew[2].id: 3
+outpost.crew[2].name: "Grace Hopper"
+outpost.crew[2].role: "scientist"
+outpost.crew[2].active: false
+outpost.crew[2].clearance: 10
+outpost.crew[2].bio: "Grace studies exo-biology.\nFindings: \"life is resilient\" — see report."
+outpost.modules[0].name: "habitat"
+outpost.modules[0].status: "operational"
+outpost.modules[0].capacity: 12
+outpost.modules[0].temperature: 22.5
+outpost.modules[0].sensors[0].type: "thermal"
+outpost.modules[0].sensors[0].value: 22.5
+outpost.modules[0].sensors[0].unit: "C"
+outpost.modules[0].sensors[1].type: "oxygen"
+outpost.modules[0].sensors[1].value: 21
+outpost.modules[0].sensors[1].unit: "%"
+outpost.modules[0].logs: "[2026-01-01] Habitat initialized.\n[2026-01-02] Life support nominal.\n[2026-01-03] Crew rotation: Ada on duty."
+outpost.modules[1].name: "lab"
+outpost.modules[1].status: "degraded"
+outpost.modules[1].capacity: 4
+outpost.modules[1].temperature: 18
+outpost.modules[1].sensors[0].type: "radiation"
+outpost.modules[1].sensors[0].value: 0.003
+outpost.modules[1].sensors[0].unit: "Sv"
+outpost.modules[1].logs: "Lab note: sample #42 contains \"unknown\" compound.\nAction: quarantine.\nBackslashes \\\\ preserved literally."
+outpost.modules[2].name: "hangar"
+outpost.modules[2].status: "offline"
+outpost.modules[2].capacity: 6
+outpost.modules[2].temperature: -5.5
+outpost.modules[2].sensors: []
+outpost.modules[2].logs: ""
+outpost.modules[2].notes.empty: {}
+outpost.modules[2].notes.arrayEmpty: []
+outpost.inventory.food.units: 1500
+outpost.inventory.food.expiry: "2026-12-31"
+outpost.inventory.food.tags[0]: "perishable"
+outpost.inventory.food.tags[1]: "essential"
+outpost.inventory.fuel.units: 1000
+outpost.inventory.fuel.type: "hydrogen"
+outpost.inventory.fuel.level: 0.85
+outpost.inventory.spareParts[0]: "wrench"
+outpost.inventory.spareParts[1]: "panel"
+outpost.inventory.spareParts[2]: "circuit"
+outpost.inventory.spareParts[3]: "panel"
+outpost.inventory.manifest[0].sku: "A-1"
+outpost.inventory.manifest[0].qty: 10
+outpost.inventory.manifest[0].price: 9.99
+outpost.inventory.manifest[1].sku: "B-2"
+outpost.inventory.manifest[1].qty: 0
+outpost.inventory.manifest[1].price: 0
+outpost.settings.autoPilot: true
+outpost.settings.alertThreshold: 0.75
+outpost.settings.backup: null
+outpost.settings.retries: 3
+outpost.settings.deep.l1.l2.l3.l4.l5.secret: "deep value"
+outpost.timeline[0]: "launch"
+outpost.timeline[1]: "orbit"
+outpost.timeline[2]: "landing"
+outpost.quotedKeys.mission-critical: true
+outpost.quotedKeys.123: "numeric key"
+outpost.quotedKeys.key with spaces: "works"
+outpost.quotedKeys.unicode-✓: "check"
+outpost.emptySections.emptyObj: {}
+outpost.emptySections.emptyArr: []
+outpost.emptySections.emptyText: ""
+outpost.emptySections.nestedEmpty.a.b: {}
+metadata.generated: "2026-09-11"
+metadata.author: "aiAgent"
+metadata.notes: "This mega document tests:\n- 3 crew members with bio text blocks\n- 3 modules with nested sensor arrays\n- inventory with mixed types\n- deep nesting 5 levels\n- empty structures\n- quoted keys with special chars\n- hex and float numbers\n- comments everywhere"

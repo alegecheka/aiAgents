@@ -1,0 +1,102 @@
+ints.zero: 0
+ints.negZero: 0
+ints.one: 1
+ints.neg: -42
+ints.big: 9223372036854775807
+ints.hexZero: 0
+ints.hexSmall: 42
+ints.hexLower: 11259375
+ints.hexUpper: 11259375
+ints.hexMixed: 26
+ints.negHex: -255
+floats.zeroDot: 0
+floats.half: 0.5
+floats.negHalf: -0.5
+floats.pi: 3.14
+floats.large: 1e+09
+floats.largeUpper: 1e+09
+floats.withPlus: 1e+10
+floats.tiny: 1e-10
+floats.negExp: -0.0025
+floats.avogadro: 6.022e+23
+strings.empty: ""
+strings.simple: "hello"
+strings.escapes: "quote:\" backslash:\\ newline:\n tab:\t cr:\r unicode:Aé€"
+strings.utf8: "naïve café — ✓ 🎉"
+strings.mixedEsc: "a\"b\\c"
+texts.empty: ""
+texts.simple: "Hello\nWorld"
+texts.indented: "  two spaces kept\n\ttab kept\nline with \"quotes\" and \\ backslashes literal"
+texts.withTriple: "first line\nsecond with \"\"\" literal triple\nthird line"
+texts.singleLine: "inline text"
+texts.unicodeText: "naïve – café ✓\nsecond line with emoji 🎉"
+keys.normal: 1
+keys._private: 2
+keys.camelCase: 3
+keys.snake_case: 4
+keys.kebab-case: 5
+keys.my odd key: 6
+keys.123numeric: 7
+keys.-dashStart: 8
+keys.key:with:colons: 9
+keys.key;with;semi: 10
+keys.sp ace: "spacey"
+objects.empty: {}
+objects.emptySpaced: {}
+objects.oneField.a: 1
+objects.trailingSemi.x: 1
+objects.trailingSemi.y: 2
+objects.deep.l1.l2.l3.l4.l5.value: "depth 5"
+objects.withComment.a: 1
+objects.withComment.b: 2
+arrays.empty: []
+arrays.single[0]: 1
+arrays.trailingComma[0]: 1
+arrays.trailingComma[1]: 2
+arrays.trailingComma[2]: 3
+arrays.nested[0][0]: 1
+arrays.nested[0][1]: 2
+arrays.nested[1][0]: 3
+arrays.nested[1][1][0]: 4
+arrays.nested[1][1][1]: 5
+arrays.nested[2]: []
+arrays.mixed[0]: "str"
+arrays.mixed[1]: 42
+arrays.mixed[2]: 3.14
+arrays.mixed[3]: true
+arrays.mixed[4]: false
+arrays.mixed[5]: null
+arrays.mixed[6].x: 1
+arrays.mixed[7][0]: 9
+arrays.mixed[7][1]: 8
+arrays.withComments[0]: 1
+arrays.withComments[1]: 2
+arrays.withComments[2]: 3
+arrays.matrix3d[0][0][0]: 1
+arrays.matrix3d[0][1][0]: 2
+arrays.matrix3d[1][0][0]: 3
+arrays.matrix3d[1][0][1]: 4
+arrays.arrayOfObjects[0].name: "a"
+arrays.arrayOfObjects[0].v: 1
+arrays.arrayOfObjects[1].name: "b"
+arrays.arrayOfObjects[1].v: 2
+combos.pipeline[0].name: "tokenize"
+combos.pipeline[0].params.maxTokens: 4096
+combos.pipeline[0].params.stop[0]: "the"
+combos.pipeline[0].params.stop[1]: "and"
+combos.pipeline[1].name: "summarize"
+combos.pipeline[1].hex: 42
+combos.pipeline[1].temp: 0.2
+combos.hooks.onStart.run: "bash"
+combos.hooks.onStart.args[0]: "mkdir"
+combos.hooks.onStart.args[1]: "-p"
+combos.hooks.onStart.args[2]: "/tmp"
+combos.hooks.onFinish: null
+combos.emptyObjInArray[0].empty: {}
+combos.emptyObjInArray[1]: []
+specials.boolTrue: true
+specials.boolFalse: false
+specials.nothing: null
+specials.arrayWithNulls[0]: null
+specials.arrayWithNulls[1]: null
+specials.soloText: "single"

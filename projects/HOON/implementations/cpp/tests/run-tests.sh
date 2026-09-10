@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# HOON parser test suite (C++ implementation).
+#   1. Golden tests: every spec-tests/*.hoon with matching *.expected must parse and dump-match
+#   2. Negative tests: every spec-tests/bad/*.hoon must be rejected.
 set -u
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -11,17 +14,31 @@ pass=0; failn=0
 ok()   { printf 'PASS  %s\n' "$1"; pass=$((pass + 1)); }
 bad()  { printf 'FAIL  %s\n' "$1"; failn=$((failn + 1)); }
 
-# --- golden test ---------------------------------------------------------
-if "$bin" "$spec/complex.hoon" > "$tmp/complex.out" 2> "$tmp/complex.err"; then
-    if diff -u "$spec/complex.expected" "$tmp/complex.out" > "$tmp/complex.diff"; then
-        ok "complex.hoon parses; golden dump matches"
-    else
-        bad "complex.hoon: dump differs from golden (diff below)"
-        sed 's/^/    /' "$tmp/complex.diff" | head -60
+# --- golden tests ---------------------------------------------------------
+found_golden=0
+for exp in "$spec"/*.expected; do
+    [ -e "$exp" ] || continue
+    found_golden=1
+    base=$(basename "$exp" .expected)
+    hoon="$spec/$base.hoon"
+    if [ ! -f "$hoon" ]; then
+        bad "$base: missing .hoon for .expected"
+        continue
     fi
-else
-    bad "complex.hoon: parser rejected it (expected success)"
-    sed 's/^/    /' "$tmp/complex.err" | head -10
+    if "$bin" "$hoon" > "$tmp/$base.out" 2> "$tmp/$base.err"; then
+        if diff -u "$exp" "$tmp/$base.out" > "$tmp/$base.diff"; then
+            ok "$base.hoon parses; golden dump matches"
+        else
+            bad "$base.hoon: dump differs from golden (diff below)"
+            sed 's/^/    /' "$tmp/$base.diff" | head -60
+        fi
+    else
+        bad "$base.hoon: parser rejected it (expected success)"
+        sed 's/^/    /' "$tmp/$base.err" | head -10
+    fi
+done
+if [ "$found_golden" -eq 0 ]; then
+    bad "no golden files found in $spec"
 fi
 
 # --- negative tests -------------------------------------------------------
