@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import sys
 import argparse
+import json
 from hoon import parse, ParseError
+from hoon.json import hoon_to_json, json_to_hoon
 
 def out_string(s: str) -> str:
     out = ['"']
@@ -58,9 +60,12 @@ def print_node(n, path: str):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Parses HOON subjects and prints every key with its value in nesting order."
+        description="Parses HOON subjects and prints every key with its value in nesting order. "
+                    "Use --json for HOON→JSON, or --to-hoon to convert JSON→HOON (library prototype, +1 source)."
     )
     parser.add_argument("files", nargs="+", help="Files to parse (use '-' for stdin)")
+    parser.add_argument("--json", action="store_true", help="Output JSON instead of dotted-path dump (HOON → JSON)")
+    parser.add_argument("--to-hoon", action="store_true", help="Treat input as JSON and output HOON (JSON → HOON)")
     args = parser.parse_args()
 
     rc = 0
@@ -79,10 +84,22 @@ def main():
             name_label = name
 
         try:
-            root = parse(data, file=name_label)
-            print_node(root, "")
+            if args.to_hoon:
+                # JSON → HOON
+                out = json_to_hoon(data, filename=name_label)
+                sys.stdout.write(out + "\n")
+            elif args.json:
+                # HOON → JSON
+                out = hoon_to_json(data, filename=name_label, indent=2)
+                sys.stdout.write(out + "\n")
+            else:
+                root = parse(data, file=name_label)
+                print_node(root, "")
         except ParseError as e:
             print(e, file=sys.stderr)
+            rc = 1
+        except Exception as e:
+            print(f"{name_label}: {e}", file=sys.stderr)
             rc = 1
 
     sys.exit(rc)
