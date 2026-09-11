@@ -2,11 +2,26 @@
 
 This is the idiomatic Python 3 reference implementation for the HOON (human oriented object notation) parser. It leverages Python's native types, including `dict` (which preserves order in Python 3.7+), avoiding any external dependencies for the library core. 
 
-## Architecture
+## Architecture — logical split (6 modules)
 - `pyproject.toml` defines the modern Python build environment.
-- `src/hoon/` contains the `Parser` implementation (`parser.py`) and **`json.py` — HOON ↔ JSON conversion** (strict mapping, Python-only prototype, +1 source file).
-- `tools/hoon-parse` is the command-line script to evaluate HOON sources (now with `--json` and `--to-hoon` flags).
-- `tests/` contains `pytest` suites alongside the universal grouped HOON validation runner (`tests/run-tests.sh`).
+- `src/hoon/` is split into 6 logical modules:
+  ```
+  src/hoon/
+    __init__.py      # facade — re-exports parse/ParseError + Lexer/Document/Value + serializer
+    lexer.py         # Lexer {s,i,line,col,file, skip_ws, scan_string, scan_text, scan_number}
+    parser.py        # Parser {lexer, parse_key/array/object/value/document} + parse()
+    ast.py           # Document = dict[str, Value] + doc_from_pairs()
+    value.py         # Value = None|bool|int|float|str|list|dict + is_bare_key()
+    serializer.py    # hoon_to_json / json_to_hoon / _encode_hoon_value / _escape_hoon_string
+    cli/
+      main.py        # hoon {parse,convert,format,validate} dispatcher
+      parse.py       # hoon parse file.hoon [--json|--to-hoon] + dotted dump
+      convert.py     # hoon convert file --to json|hoon
+      format.py      # hoon format file.hoon [--check|--in-place]
+      validate.py    # hoon validate --group valid/feature
+  ```
+  Old `json.py` and `tools/hoon-parse` monoliths are deleted — see `serializer.py` + `cli/`.
+- `tests/` contains `pytest` suites alongside the universal grouped HOON validation runner (`tests/run-tests.sh` now calls `python -m hoon.cli.main`).
 
 ## How to Build
 This package is structured to be installed cleanly using modern python tooling:
@@ -23,18 +38,27 @@ No separate compile step — `src/` is used directly via `PYTHONPATH=src`.
 
 ## How to Run & Command-Line Examples
 
-To test the parser locally, you can use the `hoon-parse` tool. Since it reads the local `src/hoon` directory if you haven't installed it system-wide, you can run:
+New unified CLI (split from old `tools/hoon-parse`):
 
 ```bash
-PYTHONPATH=src ./tools/hoon-parse ../../../spec-tests/valid/integration/complex.hoon
-PYTHONPATH=src ./tools/hoon-parse ../../../spec-tests/valid/feature/numbers.hoon
-echo '{{{ name: "AI Agent"; enabled: true }}}' | PYTHONPATH=src ./tools/hoon-parse -
-# HOON → JSON (strict mapping, comments dropped, key order preserved)
-PYTHONPATH=src ./tools/hoon-parse --json ../../../spec-tests/valid/integration/torture.hoon | head -n 20
-# JSON → HOON (strict mapping, multiline strings become """ blocks)
-echo '{"name": "AI", "vals": [1,2,3]}' | PYTHONPATH=src ./tools/hoon-parse --to-hoon -
-echo '{"note": "hello\nworld", "my odd key": 1}' | PYTHONPATH=src ./tools/hoon-parse --to-hoon -
+# parse (dotted dump, like spec-tests golden)
+PYTHONPATH=src python -m hoon.cli.main parse ../../../spec-tests/valid/integration/complex.hoon
+PYTHONPATH=src python -m hoon.cli.main parse ../../../spec-tests/valid/feature/numbers.hoon --json
+echo '{{{ name: "AI Agent"; enabled: true }}}' | PYTHONPATH=src python -m hoon.cli.main parse -
+
+# convert (HOON ⇄ JSON, replaces --json/--to-hoon flags)
+PYTHONPATH=src python -m hoon.cli.main convert ../../../spec-tests/valid/integration/torture.hoon --to json | head -n 20
+echo '{"name": "AI", "vals": [1,2,3]}' | PYTHONPATH=src python -m hoon.cli.main convert - --to hoon
+echo '{"note": "hello\nworld", "my odd key": 1}' | PYTHONPATH=src python -m hoon.cli.main convert - --to hoon
+
+# format (canonical)
+PYTHONPATH=src python -m hoon.cli.main format file.hoon --check
+
+# validate (wraps spec-tests)
+PYTHONPATH=src python -m hoon.cli.main validate --group valid/feature
 ```
+
+Legacy `tools/hoon-parse` is kept as a thin shim for CI (`PYTHONPATH=src ./tools/hoon-parse ...` still works).
 
 Run the full test suite:
 
@@ -46,11 +70,12 @@ PYTHONPATH=src bash tests/run-tests.sh --group=invalid/syntax # only syntax reje
 ```
 
 ### Basic API Usage
-Once installed, the library exposes a clean `parse()` function plus **HOON ↔ JSON** helpers from the new `json.py` (+1 source file):
+Once installed, the library exposes a clean `parse()` function plus **HOON ↔ JSON** helpers from `serializer.py`:
 
 ```python
 from hoon import parse, ParseError
-from hoon.json import hoon_to_json, json_to_hoon
+from hoon.serializer import hoon_to_json, json_to_hoon
+# or: from hoon import hoon_to_json, json_to_hoon
 
 try:
     ast = parse('{{{ name: "AI Agent"; tests: [1, 2, 3] }}}')
@@ -68,6 +93,13 @@ try:
     assert json.loads(hoon_to_json(hoon)) == json.loads(j)
 except ParseError as e:
     print(f"Failed: {e}")
+
+# Low-level split also available:
+from hoon.lexer import Lexer
+from hoon.ast import Document
+from hoon.value import Value, is_bare_key
+lex = Lexer('{{{ a: "hi" }}}')
+doc: Document = parse('{{{ a: "hi" }}}')
 ```
 
 ## Testing
@@ -87,4 +119,4 @@ All 33 must pass + 8 pytest unit tests (3 parser + 5 json roundtrip: hoon_to_jso
 
 ## Agent's Opinion
 
-*Python is arguably the most readable implementation of HOON. Leveraging Python's native `dict` to preserve key insertion order makes constructing the AST trivial and highly Pythonic without any auxiliary maps. Relying on standard tools like `pyproject.toml` and `pytest` ensures the project behaves like a modern package and easily plugs into cross-language validation suites. Python developers can now parse HOON natively!*
+*Splitting the monolith into `lexer | parser | ast | value | serializer | cli` makes the Python port mirror the spec (hoon.md §9) line-for-line: Lexer owns comments/escapes/numbers, Parser owns `document→field→value`, AST/Value are pure types, Serializer is the only place with `json` + `is_bare_key`, CLI is just `argparse` dispatch. No new deps, 100% import-path compatible via `hoon/__init__.py` — `from hoon import parse` still works and `from hoon.serializer import …` replaces `hoon.json`. Python developers can now read one file at a time!*

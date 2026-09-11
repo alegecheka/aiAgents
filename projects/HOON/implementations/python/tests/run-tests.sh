@@ -6,7 +6,11 @@ set -u
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 spec="$(cd "$root/../../spec-tests" && pwd)"
-bin="$root/tools/hoon-parse"
+if [ -x "$root/tools/hoon-parse" ]; then
+    bin="$root/tools/hoon-parse"
+else
+    bin="python3 -m hoon.cli.main parse"
+fi
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
@@ -23,9 +27,13 @@ pass=0; failn=0
 ok()   { printf 'PASS  %s\n' "$1"; pass=$((pass + 1)); }
 bad()  { printf 'FAIL  %s\n' "$1"; failn=$((failn + 1)); }
 
-# helper to run hoon-parse with correct PYTHONPATH
+# helper to run hoon-parse with correct PYTHONPATH (supports new split CLI)
 run_bin() {
-    PYTHONPATH="$root/src" "$bin" "$@"
+    if [[ "$bin" == *"python"* ]]; then
+        PYTHONPATH="$root/src" python3 -m hoon.cli.main parse "$@"
+    else
+        PYTHONPATH="$root/src" "$bin" "$@"
+    fi
 }
 
 # --- golden tests (valid) ------------------------------------------------

@@ -1,304 +1,150 @@
-import string
+"""hoon.parser — recursive-descent parser.
 
-class ParseError(Exception):
-    pass
+Consumes Lexer; returns Document (ordered dict).
+"""
+from __future__ import annotations
+from .lexer import Lexer, ParseError
+from .ast import Document, doc_from_pairs
 
 class Parser:
+    """Thin wrapper around Lexer for field/value/document grammar.
+
+    Kept for backwards compat — new code may instantiate Lexer directly.
+    Delegates all scanning to Lexer.
+    """
     def __init__(self, s: str, file: str = "<input>"):
-        self.s = s
-        self.i = 0
-        self.line = 1
-        self.col = 1
-        self.file = file
+        self.lex = Lexer(s, file=file)
+        self.s = self.lex.s
+        self.file = self.lex.file
+
+    @property
+    def i(self): return self.lex.i
+    @property
+    def line(self): return self.lex.line
+    @property
+    def col(self): return self.lex.col
 
     def fail(self, msg: str):
-        raise ParseError(f"{self.file}: line {self.line}, col {self.col}: {msg}")
+        self.lex.fail(msg)
 
-    def cur(self) -> str:
-        return self.s[self.i] if self.i < len(self.s) else ""
-
-    def peek(self, off: int) -> str:
-        return self.s[self.i + off] if self.i + off < len(self.s) else ""
-
-    def nextc(self) -> str:
-        c = self.cur()
-        if not c:
-            return ""
-        if c == '\n':
-            self.line += 1
-            self.col = 1
-        else:
-            self.col += 1
-        self.i += 1
-        return c
-
-    def has_lit(self, lit: str) -> bool:
-        return self.s.startswith(lit, self.i)
-
-    def skip_ws(self):
-        while True:
-            c = self.cur()
-            if not c:
-                break
-            if c in " \t\r\n":
-                self.nextc()
-                continue
-            if c == '<' and self.has_lit("<!--"):
-                for _ in range(4): self.nextc()
-                while True:
-                    if not self.cur():
-                        self.fail("unterminated comment (missing '-->')")
-                    if self.cur() == '-' and self.peek(1) == '-' and self.peek(2) == '>':
-                        for _ in range(3): self.nextc()
-                        break
-                    self.nextc()
-                continue
-            break
-
-    def scan_string(self) -> str:
-        if self.cur() != '"':
-            self.fail("internal: scan_string without '\"'")
-        self.nextc()
-        b = []
-        while True:
-            c = self.cur()
-            if not c:
-                self.fail("unterminated string (missing closing '\"')")
-            if c == '\n':
-                self.fail("quoted string must close on the same line — use \"\"\" for multi-line text")
-            if c == '"':
-                self.nextc()
-                break
-            if c == '\\':
-                self.nextc()
-                e = self.cur()
-                if e == '"': b.append('"'); self.nextc()
-                elif e == '\\': b.append('\\'); self.nextc()
-                elif e == 'n': b.append('\n'); self.nextc()
-                elif e == 't': b.append('\t'); self.nextc()
-                elif e == 'r': b.append('\r'); self.nextc()
-                elif e == 'u':
-                    self.nextc()
-                    cp = 0
-                    for _ in range(4):
-                        h = self.cur()
-                        if h not in string.hexdigits:
-                            self.fail("invalid \\u escape: need 4 hex digits")
-                        self.nextc()
-                        cp = cp * 16 + int(h, 16)
-                    if cp > 0x10FFFF or (0xD800 <= cp <= 0xDFFF):
-                        self.fail(f"\\u escape out of range")
-                    b.append(chr(cp))
-                else:
-                    self.fail(f"unknown escape '\\{e or '?'}'")
-            else:
-                b.append(c)
-                self.nextc()
-        return "".join(b)
-
-    def scan_text(self) -> str:
-        for _ in range(3): self.nextc()
-        b = []
-        while True:
-            c = self.cur()
-            if not c:
-                self.fail("unterminated text block (missing closing \"\"\")")
-            if c == '"' and self.peek(1) == '"' and self.peek(2) == '"':
-                for _ in range(3): self.nextc()
-                break
-            if c == '\\' and self.peek(1) == '"' and self.peek(2) == '"' and self.peek(3) == '"':
-                self.nextc()
-                b.append('"""')
-                for _ in range(3): self.nextc()
-                continue
-            b.append(c)
-            self.nextc()
-            
-        text = "".join(b)
-        if text.startswith('\n'): text = text[1:]
-        if text.endswith('\n'): text = text[:-1]
-        return text
-
-    def parse_number(self):
-        t = []
-        sawdot = False
-        sawexp = False
-        is_hex = False
-
-        if self.cur() == '-':
-            t.append('-')
-            self.nextc()
-            
-        if self.cur() == '0':
-            t.append('0')
-            self.nextc()
-            if self.cur() in ('x', 'X'):
-                is_hex = True
-                t.append(self.cur())
-                self.nextc()
-                if not (self.cur() and self.cur() in string.hexdigits):
-                    self.fail("expected a hex digit after 0x")
-                while self.cur() and self.cur() in string.hexdigits:
-                    t.append(self.cur())
-                    self.nextc()
-            elif self.cur() and self.cur().isdigit():
-                self.fail("number may not have leading zeros")
-        elif self.cur() and self.cur().isdigit():
-            while self.cur() and self.cur().isdigit():
-                t.append(self.cur())
-                self.nextc()
-        else:
-            self.fail("expected a digit in number")
-            
-        if not is_hex:
-            if self.cur() == '.':
-                sawdot = True
-                t.append('.')
-                self.nextc()
-                if not (self.cur() and self.cur().isdigit()):
-                    self.fail("expected a digit after the decimal point")
-                while self.cur() and self.cur().isdigit():
-                    t.append(self.cur())
-                    self.nextc()
-                    
-            if self.cur() in ('e', 'E'):
-                sawexp = True
-                t.append(self.cur())
-                self.nextc()
-                if self.cur() in ('+', '-'):
-                    t.append(self.cur())
-                    self.nextc()
-                if not (self.cur() and self.cur().isdigit()):
-                    self.fail("expected a digit in the exponent")
-                while self.cur() and self.cur().isdigit():
-                    t.append(self.cur())
-                    self.nextc()
-                    
-        c = self.cur()
-        if c and (c.isalnum() or c in '_-.'):
-            self.fail("malformed number")
-            
-        num_str = "".join(t)
-        if sawdot or sawexp:
-            return float(num_str)
-        else:
-            try:
-                return int(num_str, 16 if is_hex else 10)
-            except ValueError:
-                self.fail("integer out of range")
+    def cur(self) -> str: return self.lex.cur()
+    def peek(self, off: int) -> str: return self.lex.peek(off)
+    def nextc(self) -> str: return self.lex.nextc()
+    def has_lit(self, lit: str) -> bool: return self.lex.has_lit(lit)
+    def skip_ws(self): return self.lex.skip_ws()
+    def scan_string(self) -> str: return self.lex.scan_string()
+    def scan_text(self) -> str: return self.lex.scan_text()
+    def parse_number(self): return self.lex.scan_number()
 
     def parse_key(self) -> str:
-        self.skip_ws()
-        c = self.cur()
+        self.lex.skip_ws()
+        c = self.lex.cur()
         if c == '"':
-            k = self.scan_string()
+            k = self.lex.scan_string()
         elif c.isalpha() or c == '_':
             b = []
-            while self.cur() and (self.cur().isalnum() or self.cur() in '_-'):
-                b.append(self.cur())
-                self.nextc()
+            while self.lex.cur() and (self.lex.cur().isalnum() or self.lex.cur() in '_-'):
+                b.append(self.lex.cur())
+                self.lex.nextc()
             k = "".join(b)
         else:
-            self.fail("expected a key name")
-            
-        self.skip_ws()
-        if self.cur() != ':':
-            self.fail("expected ':' after key")
-        self.nextc()
+            self.lex.fail("expected a key name")
+        self.lex.skip_ws()
+        if self.lex.cur() != ':':
+            self.lex.fail("expected ':' after key")
+        self.lex.nextc()
         return k
 
     def parse_array(self) -> list:
-        self.nextc()
+        self.lex.nextc()
         a = []
         while True:
-            self.skip_ws()
-            if self.cur() == ']':
-                self.nextc()
+            self.lex.skip_ws()
+            if self.lex.cur() == ']':
+                self.lex.nextc()
                 return a
             a.append(self.parse_value())
-            self.skip_ws()
-            c = self.cur()
+            self.lex.skip_ws()
+            c = self.lex.cur()
             if c == ',':
-                self.nextc()
+                self.lex.nextc()
                 continue
             if c == ']':
                 continue
-            self.fail("expected ',' or ']' in array")
+            self.lex.fail("expected ',' or ']' in array")
 
-    def parse_object(self, triple: bool) -> dict:
-        for _ in range(3 if triple else 1): self.nextc()
-        o = {}
+    def parse_object(self, triple: bool) -> Document:
+        for _ in range(3 if triple else 1): self.lex.nextc()
         closer = "}}}" if triple else "}"
-        
+        pairs = []
+        seen = set()
         while True:
-            self.skip_ws()
-            if self.cur() == '}':
+            self.lex.skip_ws()
+            if self.lex.cur() == '}':
                 for _ in range(3 if triple else 1):
-                    if self.cur() != '}':
-                        self.fail(f"expected '{closer}'")
-                    self.nextc()
-                return o
-                
+                    if self.lex.cur() != '}':
+                        self.lex.fail(f"expected '{closer}'")
+                    self.lex.nextc()
+                return doc_from_pairs(pairs)
             key = self.parse_key()
             val = self.parse_value()
-            
-            if key in o:
-                self.fail(f"duplicate key \"{key}\" in the same object")
-            o[key] = val
-            
-            self.skip_ws()
-            c = self.cur()
+            if key in seen:
+                self.lex.fail(f"duplicate key \"{key}\" in the same object")
+            seen.add(key)
+            pairs.append((key, val))
+            self.lex.skip_ws()
+            c = self.lex.cur()
             if c == ';':
-                self.nextc()
+                self.lex.nextc()
                 continue
             if c == '}':
                 continue
-            self.fail(f"expected ';' or '{closer}' after value")
+            self.lex.fail(f"expected ';' or '{closer}' after value")
 
     def parse_value(self):
-        self.skip_ws()
-        c = self.cur()
+        self.lex.skip_ws()
+        c = self.lex.cur()
         if c == '"':
-            if self.peek(1) == '"' and self.peek(2) == '"':
-                return self.scan_text()
-            return self.scan_string()
+            if self.lex.peek(1) == '"' and self.lex.peek(2) == '"':
+                return self.lex.scan_text()
+            return self.lex.scan_string()
         if c == '-' or c.isdigit():
-            return self.parse_number()
+            return self.lex.scan_number()
         if c == '[':
             return self.parse_array()
         if c == '{':
-            if self.peek(1) == '{':
-                self.fail("double braces are reserved")
+            if self.lex.peek(1) == '{':
+                self.lex.fail("double braces are reserved")
             return self.parse_object(False)
-            
         if c.isalpha() or c == '_':
             b = []
-            while self.cur() and (self.cur().isalnum() or self.cur() in '_-'):
-                b.append(self.cur())
-                self.nextc()
+            while self.lex.cur() and (self.lex.cur().isalnum() or self.lex.cur() in '_-'):
+                b.append(self.lex.cur())
+                self.lex.nextc()
             w = "".join(b)
             if w == "true": return True
             if w == "false": return False
             if w == "null": return None
-            self.fail(f"bare word \"{w}\" is not a value — quote strings, e.g. \"{w}\"")
-            
-        self.fail("unexpected character in value position")
+            self.lex.fail(f"bare word \"{w}\" is not a value — quote strings, e.g. \"{w}\"")
+        self.lex.fail("unexpected character in value position")
 
-    def parse_document(self):
-        self.skip_ws()
-        if self.cur() != '{':
-            self.fail("document must be one subject opened with '{{{'")
-        if self.peek(1) == '{' and self.peek(2) == '{':
+    def parse_document(self) -> Document:
+        self.lex.skip_ws()
+        if self.lex.cur() != '{':
+            self.lex.fail("document must be one subject opened with '{{{'")
+        if self.lex.peek(1) == '{' and self.lex.peek(2) == '{':
             return self.parse_object(True)
-        if self.peek(1) == '{':
-            self.fail("'{{' is reserved — open the document with '{{{'")
-        self.fail("the document root must use '{{{' — single braces are only for nested objects")
+        if self.lex.peek(1) == '{':
+            self.lex.fail("'{{' is reserved — open the document with '{{{'")
+        self.lex.fail("the document root must use '{{{' — single braces are only for nested objects")
 
 
 def parse(s: str, file: str = "<input>"):
     p = Parser(s, file)
     root = p.parse_document()
-    p.skip_ws()
-    if p.cur():
-        p.fail("unexpected content after the document end (one subject per file)")
+    p.lex.skip_ws()
+    if p.lex.cur():
+        p.lex.fail("unexpected content after the document end (one subject per file)")
     return root
+
+__all__ = ["Parser", "ParseError", "parse"]
