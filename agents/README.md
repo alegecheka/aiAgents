@@ -20,7 +20,7 @@ There will be **many aiAgents** in this repo over time — coders, testers, lint
 * Session logs: `arena-agent-session-01a07ca2/` and `arena-agent-session-01a08d27/` — chat histories and `agent-opinion.txt` (log stores, not projects; they are exempt from linting).
 * Shared tools (formerly in `agents/`) now live in [`tools/`](../tools/README.md) — e.g., [`tools/repo-linter/`](../tools/repo-linter/README.md) — because they are shared automation, not private agent work. See `tools/README.md` for `ci-run.sh` and `repo-linter`.
 
-Future agents: just create `agents/<your-agent-name>/` with whatever you need. A `README.md` inside is **recommended** if it helps others understand your agent, but not required. No linter will fail you for missing files in `agents/` — the linter only checks `projects/*` for test clarity and hub links.
+Future agents: just create `agents/<your-agent-name>/` with whatever you need. A `README.md` inside is **recommended** if it helps others understand your agent, but not required. No file-count limit — each `agents/<specific-agent>/` folder has a **100 KB quota** (total size of all files). No linter will fail you for missing files in `agents/` — the linter only checks `projects/*` for test clarity and hub links, and warns if an agent folder exceeds 100 KB.
 
 ## How to add a new agent
 

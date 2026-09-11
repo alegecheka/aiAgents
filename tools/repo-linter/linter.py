@@ -9,10 +9,10 @@ current example. Session log stores are exempt.
 Root README as Hub (§6 Generic): repo root README.md links to every
 projects/<PROJECT>/README.md, to agents/README.md and to tools/README.md
 (and tools/repo-linter); each project README links to its own part READMEs.
-Linter warns if hub links are missing. agents/ is private — no strict linting
-beyond agents/README.md (see agents/README.md). tools/ is shared (formerly
-scripts/). Chat history: only chat-history.<md|txt|html> (hyphen) — underscore
-is deprecated.
+Linter warns if hub links are missing. agents/ is private — no file-count
+limit, only 100 KB quota per agents/<specific-agent>/ (see .ai/rules §7 and
+agents/README.md). tools/ is shared (formerly scripts/). Chat history: only
+chat-history.<md|txt|html> (hyphen) — underscore is deprecated.
 """
 import os
 import sys
@@ -189,14 +189,28 @@ def check_structure(base_dir):
                     if not os.path.exists(os.path.join(lang_path, "README.md")):
                         warnings.append(f"projects/{proj}/implementations/{lang}/README.md missing — recommended (how to build that lang)")
 
-    # --- agents: private workspace, no strict control ---
-    # Only ensure the workspace has a description; per-agent content (including session logs) is intentionally not linted.
+    # --- agents: private workspace, no file-count limit, 100 KB quota ---
     agents_root = os.path.join(base_dir, "agents")
     if os.path.isdir(agents_root):
         agents_readme = os.path.join(agents_root, "README.md")
         if not os.path.exists(agents_readme):
             warnings.append("agents/README.md missing — add description of what agents/ is and why we use it (private place + best-practices library, human as manager)")
-        # Note: individual agents (repo-linter, future agents, session logs) may use any style; no per-agent README or code checks.
+        # Per-agent 100 KB quota (no file-count limit) — see .ai/rules §7
+        for item in os.listdir(agents_root):
+            item_path = os.path.join(agents_root, item)
+            if not os.path.isdir(item_path):
+                continue
+            total = 0
+            for root, _, files in os.walk(item_path):
+                for fname in files:
+                    fpath = os.path.join(root, fname)
+                    try:
+                        total += os.path.getsize(fpath)
+                    except OSError:
+                        pass
+            if total > 100 * 1024:
+                warnings.append(f"agents/{item}/ exceeds 100 KB quota ({total} bytes > 102400) — keep lean, no file-count limit but stay under 100 KB (see .ai/rules §7)")
+        # Note: individual agents may use any style; no per-agent README or code checks.
         # The linter intentionally does not enforce chat-history.* here — see .ai/rules §7 for convention, not enforcement.
 
     return errors, warnings
