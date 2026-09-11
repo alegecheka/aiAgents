@@ -202,3 +202,15 @@
 - Updated tests `projects/HOON/implementations/python/tests/test_parser.py` from 3→8: added `test_hoon_to_json`, `test_json_to_hoon`, `test_roundtrip_torture`, `test_json_text_block`, `test_hex_becomes_decimal` — all pass; `make test` now 8 pytest + 33 universal (previously 3+33), linter tidy.
 - Updated `projects/HOON/implementations/python/README.md`: Architecture notes `json.py` +1 source, How to Run adds `--json`/`--to-hoon` examples, Basic API Usage adds `hoon_to_json`/`json_to_hoon` snippet with multiline/odd-key, Testing now 8 tests; left `projects/HOON/implementations/cpp/tools/hoon2json.cpp` stub untouched per `python_only`.
 - Next: run linter, commit feature (including this chat-history append), push `55e6e63+1` (quota still 28K <100KB, 6230 B <100KB).
+
+**User (2026-09-11):** *"Ok. we are all again focused on python. What i want is to do a logical split into: 1. lexer 2. parser 3. AST 4. Value 5. serializer 6. cli apps. Any questions? No? Than do a plan for your next task"*
+**Agent (plan):** Proposed 4-step split: `lexer.py` (skip_ws/scan_string/scan_text/scan_number), `parser.py` (parse_key/array/object/value/document consumes Lexer), `ast.py` (Document), `value.py` (Value + is_bare_key), `serializer.py` (hoon_to_json/json_to_hoon, rename json.py), `cli/` (parse/convert/format/validate + main dispatcher), with `__init__.py` facade, `pyproject.toml` hoon script, `tests/run-tests.sh` fallback to `python -m hoon.cli.main parse`.
+
+**User (2026-09-11):** *"Ok. But dont forget to cleanup old unusable files. Delete them from repo immediatly. So, do your task now."*
+**Agent (commit 3a310ff, python split, 16 files, 639+/339-):**
+- Created `lexer.py` (193 LOC), `ast.py` (15), `value.py` (16), `serializer.py` (from json.py 72% rename), `cli/{main.py 139, parse.py, convert.py 32, format.py 38, validate.py 14, __init__.py}`.
+- Refactored `parser.py` (342→150 LOC logic, delegates scanning to Lexer).
+- Updated `__init__.py` facade, `pyproject.toml` [project.scripts] hoon, `tests/test_parser.py` imports `hoon.serializer`, `tests/run-tests.sh` fallback to new CLI, `README.md` Architecture 6-module split.
+- Deleted old unusable files immediately via `git rm`: `src/hoon/json.py`, `tools/hoon-parse` (git detected as renames to serializer.py/cli/parse.py).
+- Verified `pytest 8/8`, `run-tests.sh 33/33` (and --group valid/minimal 4), `PYTHONPATH=src python -m hoon.cli.main parse/convert` works.
+- Pushed 3a310ff to origin/arena/01a08d27-aiagents (012048f..3a310ff).
